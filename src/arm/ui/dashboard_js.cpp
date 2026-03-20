@@ -49,8 +49,9 @@ function connect() {
         mb.textContent = '● MQTT –'; mb.className = 'mqtt-badge bad';
       }
       const pending = parseInt(d.pending) || 0;
-      qb.textContent = '📦 Queue: ' + pending;
-      qb.className = pending > 0 ? 'queue-badge has' : 'queue-badge';
+      const awaitingAck = parseInt(d.awaitingAck) || 0;
+      qb.textContent = '📦 Queue: ' + pending + ' | ACK: ' + awaitingAck;
+      qb.className = (pending > 0 || awaitingAck > 0) ? 'queue-badge has' : 'queue-badge';
     }
   };
 }
@@ -69,6 +70,8 @@ function pwmToDeg(v) { return Math.round((v-150)/(600-150)*180); }
  
 function updateTelemetry(d) {
   const pitch = parseFloat(d.pitch), roll = parseFloat(d.roll);
+  const posture = (d.postureLabel || '').replace(/_/g, ' ');
+  const feedbackFault = !!d.feedbackFault;
   const pEl = document.getElementById('pitchVal');
   const rEl = document.getElementById('rollVal');
   pEl.textContent = pitch.toFixed(2)+'°';
@@ -77,8 +80,13 @@ function updateTelemetry(d) {
   pEl.className = 'tval-num '+cf(pitch);
   rEl.className = 'tval-num '+cf(roll);
   const bb = document.getElementById('balanceBadge');
-  if (d.isBalanced) { bb.textContent='✓ CÂN BẰNG';    bb.className='balance-badge ok'; }
-  else              { bb.textContent='✗ MẤT CÂN BẰNG'; bb.className='balance-badge no'; }
+  if (feedbackFault) {
+    bb.textContent='⚠ FEEDBACK FAULT'; bb.className='balance-badge no';
+  } else if (d.isBalanced) {
+    bb.textContent='✓ '+(posture || 'CÂN BẰNG');    bb.className='balance-badge ok';
+  } else {
+    bb.textContent='✗ '+(posture || 'MẤT CÂN BẰNG'); bb.className='balance-badge no';
+  }
   drawTilt(pitch, roll);
   ['A','B','C','D','E'].forEach((m,i) => {
     const v   = parseInt([d.curA,d.curB,d.curC,d.curD,d.curE][i])||0;

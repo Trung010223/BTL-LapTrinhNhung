@@ -23,8 +23,6 @@
 #define I2C_SCL 22
 
 namespace {
-const char *ALT_WIFI_SSID = "QuangTrung11111111";
-const char *ALT_WIFI_PASS = "11111111";
 const uint8_t PCA_CANDIDATES[] = {0x40, 0x41, 0x42, 0x43};
 
 const char *authModeName(wifi_auth_mode_t mode) {
@@ -119,6 +117,10 @@ WiFiClient espClient;
 PubSubClient mqtt(espClient);
 uint8_t nodeMAC[] = {0xF0, 0x24, 0xF9, 0x45, 0xBE, 0xD4};
 
+namespace {
+bool espNowReady = false;
+}
+
 TelemetryPacket latestTele = {0, 0, 0, 0, 0, 0, 0, false};
 bool newTeleAvailable = false;
 
@@ -131,7 +133,15 @@ bool vacuumRunning = false;
 
 void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
   (void)mac;
+  if (len != sizeof(TelemetryPacket)) {
+    Serial.printf("[ESP-NOW] Bo qua telemetry sai kich thuoc: %d != %u\n",
+                  len,
+                  static_cast<unsigned>(sizeof(TelemetryPacket)));
+    return;
+  }
+
   memcpy(&latestTele, data, sizeof(latestTele));
+  latestTele.postureLabel[sizeof(latestTele.postureLabel) - 1] = '\0';
   newTeleAvailable = true;
 
   String payload = "{\"source\":\"vehicle\","
@@ -142,11 +152,11 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
     ",\"curC\":" + String(latestTele.curC) +
     ",\"curD\":" + String(latestTele.curD) +
     ",\"curE\":" + String(latestTele.curE) +
-    ",\"isBalanced\":" + String(latestTele.isBalanced ? "true" : "false") + "}";
+    ",\"isBalanced\":" + String(latestTele.isBalanced ? "true" : "false") +
+    ",\"feedbackFault\":" + String(latestTele.feedbackFault ? "true" : "false") +
+    ",\"postureLabel\":\"" + String(latestTele.postureLabel) + "\"}";
 
-  if (mqtt.connected()) {
-    mqtt.publish("vehicle/status", payload.c_str());
-  }
+  mqttPublishSafe("vehicle/status", payload);
   Serial.println("[ESP-NOW] " + payload);
 }
 
@@ -157,7 +167,7 @@ void sendCmdToVehicle(int speed, int direction, int lift, bool stop) {
     static_cast<int16_t>(lift),
     stop,
   };
-  esp_err_t sendRc = esp_now_send(nodeMAC, (uint8_t *)&cmd, sizeof(cmd));
+  esp_err_t sendRc = espNowReady ? esp_now_send(nodeMAC, (uint8_t *)&cmd, sizeof(cmd)) : ESP_ERR_INVALID_STATE;
 
   JsonDocument ack;
   ack["source"] = "gateway";
@@ -170,6 +180,9 @@ void sendCmdToVehicle(int speed, int direction, int lift, bool stop) {
   String ackPayload;
   serializeJson(ack, ackPayload);
   Serial.println("[ESP-NOW][ACK] " + ackPayload);
+  if (sendRc != ESP_OK) {
+    Serial.printf("[ESP-NOW] Gui lenh that bai rc=%d\n", static_cast<int>(sendRc));
+  }
 
   if (mqtt.connected()) {
     mqtt.publish("vehicle/cmd_ack", ackPayload.c_str());
@@ -205,17 +218,6 @@ void initCanhTay() {
 
   bool connected = tryConnectWifi(wifiCfg.ssid, wifiCfg.password, 20);
 
-  if (!connected && wifiCfg.ssid != ALT_WIFI_SSID) {
-    Serial.printf("[WIFI] Thu SSID du phong '%s'...\n", ALT_WIFI_SSID);
-    connected = tryConnectWifi(String(ALT_WIFI_SSID), String(ALT_WIFI_PASS), 20);
-    if (connected) {
-      wifiCfg.ssid = ALT_WIFI_SSID;
-      wifiCfg.password = ALT_WIFI_PASS;
-      saveConfigAtomic(wifiCfg.ssid, wifiCfg.password, wifiCfg.mqttServer, wifiCfg.mqttPort);
-      Serial.println("[WIFI] Da luu config tu SSID du phong");
-    }
-  }
-
   if (!connected) {
     Serial.println("[WIFI] That bai -> Captive Portal");
     startCaptivePortal();
@@ -243,13 +245,30 @@ void initCanhTay() {
   webSocket.begin();
   webSocket.onEvent(webSocketEvent);
 
-  esp_now_init();
+  esp_err_t initRc = esp_now_init();
+  if (initRc != ESP_OK) {
+    Serial.printf("[ESP-NOW] Init that bai rc=%d\n", static_cast<int>(initRc));
+    espNowReady = false;
+    Serial.println("[SETUP] Hoan tat voi loi ESP-NOW");
+    printAngles();
+    return;
+  }
+
   esp_now_register_recv_cb(OnDataRecv);
   esp_now_peer_info_t peer = {};
   memcpy(peer.peer_addr, nodeMAC, 6);
   peer.channel = 0;
   peer.encrypt = false;
-  esp_now_add_peer(&peer);
+  esp_err_t peerRc = esp_now_add_peer(&peer);
+  if (peerRc != ESP_OK) {
+    Serial.printf("[ESP-NOW] Add peer that bai rc=%d\n", static_cast<int>(peerRc));
+    espNowReady = false;
+    Serial.println("[SETUP] Hoan tat voi loi ESP-NOW");
+    printAngles();
+    return;
+  }
+
+  espNowReady = true;
 
   Serial.println("[SETUP] Hoan tat!");
   printAngles();
@@ -270,8 +289,15 @@ void updateCanhTay() {
   }
 
   if (newTeleAvailable) {
+    static bool feedbackFaultLatched = false;
     newTeleAvailable = false;
     broadcastTelemetry();
+    if (latestTele.feedbackFault && !feedbackFaultLatched) {
+      broadcastAlert("Xe kich hoat feedback loop failsafe", "warn");
+    } else if (!latestTele.feedbackFault && feedbackFaultLatched) {
+      broadcastAlert("Xe da thoat feedback loop failsafe", "info");
+    }
+    feedbackFaultLatched = latestTele.feedbackFault;
   }
 
   if (autoMode) {

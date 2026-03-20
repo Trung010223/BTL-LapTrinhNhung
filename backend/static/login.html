@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MayHaiTre | Cổng Truy Cập</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+
+      :root {
+        --bg-0: #071116;
+        --bg-1: #0b1820;
+        --bg-2: #0e202a;
+        --line: rgba(128, 178, 204, 0.24);
+        --text: #edf7fb;
+        --muted: #90acbc;
+        --accent-2: #59c7ff;
+        --ok: #6cf5b6;
+        --warn: #ffcf6b;
+        --danger: #ff8579;
+        --shadow: 0 28px 60px rgba(0, 0, 0, 0.34);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        padding: 24px;
+        color: var(--text);
+        font-family: "Manrope", "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at 12% 14%, rgba(89, 199, 255, 0.17), transparent 26%),
+          radial-gradient(circle at 88% 10%, rgba(116, 240, 197, 0.14), transparent 28%),
+          radial-gradient(circle at 50% 100%, rgba(255, 211, 109, 0.08), transparent 30%),
+          linear-gradient(180deg, var(--bg-0), var(--bg-1) 42%, var(--bg-2));
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+        background-size: 22px 22px;
+        mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.6), transparent 94%);
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent-2);
+        background: rgba(89, 199, 255, 0.1);
+        border: 1px solid rgba(89, 199, 255, 0.22);
+      }
+
+      .shell {
+        max-width: 1160px;
+        min-height: calc(100vh - 48px);
+        margin: 0 auto;
+        display: grid;
+        align-items: center;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(360px, 420px);
+        gap: 18px;
+        align-items: stretch;
+      }
+
+      .panel {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        background: linear-gradient(180deg, rgba(12, 25, 33, 0.96), rgba(8, 17, 23, 0.94));
+        box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        padding: 24px;
+      }
+
+      .panel::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), transparent 30%, transparent 70%, rgba(89, 199, 255, 0.06));
+      }
+
+      .visual {
+        display: grid;
+        align-content: space-between;
+        gap: 20px;
+        background:
+          radial-gradient(circle at 20% 15%, rgba(89, 199, 255, 0.18), transparent 24%),
+          radial-gradient(circle at 80% 10%, rgba(116, 240, 197, 0.16), transparent 25%),
+          linear-gradient(180deg, rgba(10, 21, 29, 0.98), rgba(7, 14, 20, 0.98));
+      }
+
+      .title {
+        font-size: clamp(34px, 5vw, 62px);
+        line-height: 0.94;
+        letter-spacing: -0.05em;
+        max-width: 10ch;
+        margin-top: 16px;
+      }
+
+      .copy {
+        margin-top: 16px;
+        color: var(--muted);
+        line-height: 1.7;
+        max-width: 58ch;
+      }
+
+      .rack {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .rack-item {
+        padding: 14px;
+        border-radius: 18px;
+        border: 1px solid rgba(137, 173, 196, 0.18);
+        background: rgba(4, 12, 17, 0.62);
+      }
+
+      .rack-label {
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .rack-item strong {
+        display: block;
+        margin-top: 8px;
+        font-size: 18px;
+      }
+
+      .rack-sub {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .form {
+        display: grid;
+        gap: 18px;
+        align-content: center;
+      }
+
+      .form h2 {
+        font-size: 28px;
+        letter-spacing: -0.03em;
+      }
+
+      .form p {
+        margin-top: 10px;
+        color: var(--muted);
+        line-height: 1.65;
+      }
+
+      .status-box {
+        padding: 14px;
+        border-radius: 18px;
+        border: 1px solid rgba(123, 162, 183, 0.18);
+        background: rgba(3, 10, 14, 0.8);
+        display: grid;
+        gap: 8px;
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border-radius: 999px;
+        width: fit-content;
+        font-weight: 800;
+      }
+
+      .ok {
+        background: rgba(108, 245, 182, 0.12);
+        color: var(--ok);
+      }
+
+      .warn {
+        background: rgba(255, 207, 107, 0.12);
+        color: var(--warn);
+      }
+
+      .danger {
+        background: rgba(255, 133, 121, 0.12);
+        color: var(--danger);
+      }
+
+      .input-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      label {
+        display: grid;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        color: var(--muted);
+      }
+
+      input {
+        width: 100%;
+        min-height: 50px;
+        padding: 0 16px;
+        border-radius: 16px;
+        border: 1px solid rgba(127, 170, 191, 0.22);
+        background: rgba(3, 10, 14, 0.9);
+        color: var(--text);
+        font: inherit;
+        outline: none;
+      }
+
+      input:focus {
+        border-color: rgba(89, 199, 255, 0.42);
+        box-shadow: 0 0 0 4px rgba(89, 199, 255, 0.08);
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      .actions > * {
+        flex: 1 1 0;
+      }
+
+      button,
+      .nav-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 46px;
+        padding: 0 16px;
+        border-radius: 14px;
+        border: 1px solid rgba(124, 177, 206, 0.24);
+        background: linear-gradient(180deg, rgba(21, 45, 60, 0.96), rgba(12, 26, 36, 0.96));
+        color: var(--text);
+        text-decoration: none;
+        font: inherit;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .token-box {
+        min-height: 104px;
+        padding: 14px;
+        border-radius: 18px;
+        border: 1px solid rgba(122, 161, 182, 0.2);
+        background: rgba(3, 9, 13, 0.88);
+        font-family: "IBM Plex Mono", Consolas, monospace;
+        font-size: 12px;
+        line-height: 1.65;
+        overflow-wrap: anywhere;
+      }
+
+      .footnote {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .top-actions {
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      @media (max-width: 1180px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 760px) {
+        body {
+          padding: 14px;
+        }
+
+        .shell {
+          min-height: auto;
+        }
+
+        .panel {
+          padding: 16px;
+          border-radius: 20px;
+        }
+
+        .rack {
+          grid-template-columns: 1fr;
+        }
+
+        .title {
+          max-width: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <div class="layout">
+        <article class="panel visual">
+          <div>
+            <div class="top-actions">
+              <a class="nav-link" href="/dashboard">Màn hình giám sát</a>
+            </div>
+            <span class="eyebrow">MayHaiTre Cổng Điều Khiển</span>
+            <h1 class="title">Cổng truy cập hệ thống điều khiển.</h1>
+            <p class="copy">
+              Trang này chỉ làm nhiệm vụ xác thực người vận hành. Sau khi nhận được JWT hợp lệ, hệ thống sẽ chuyển sang trung tâm điều khiển riêng cho tay máy và xe.
+            </p>
+          </div>
+
+          <div class="rack">
+            <div class="rack-item">
+              <div class="rack-label">Cổng bảo mật</div>
+              <strong>Khóa bằng JWT</strong>
+              <div class="rack-sub">Không mở khu điều khiển khi chưa xác thực.</div>
+            </div>
+            <div class="rack-item">
+              <div class="rack-label">API</div>
+              <strong>/auth/login</strong>
+              <div class="rack-sub">Xác thực trước, điều khiển sau.</div>
+            </div>
+            <div class="rack-item">
+              <div class="rack-label">Chuyển hướng</div>
+              <strong>/control</strong>
+              <div class="rack-sub">Tự chuyển khi nhận token hợp lệ.</div>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="form">
+            <div>
+              <h2>Đăng nhập vận hành</h2>
+              <p>
+                Nhập tài khoản điều khiển để mở trung tâm điều khiển. Nếu phiên hết hạn hoặc bị khóa, bạn sẽ quay lại trang này.
+              </p>
+            </div>
+
+            <div class="status-box">
+              <div id="authStatus" class="status-pill warn">Chưa đăng nhập</div>
+              <div id="authMeta" class="footnote">Hệ thống đang khóa trung tâm điều khiển.</div>
+            </div>
+
+            <div class="input-grid">
+              <label>
+                Tài khoản
+                <input id="username" type="text" value="admin" />
+              </label>
+              <label>
+                Mật khẩu
+                <input id="password" type="password" value="" placeholder="Nhập mật khẩu" />
+              </label>
+              <div class="actions">
+                <button id="loginButton" onclick="login()">Mở trung tâm điều khiển</button>
+              </div>
+            </div>
+
+            <div>
+              <div class="footnote" style="margin-bottom: 10px;">Token phiên hiện tại</div>
+              <div id="tokenBox" class="token-box">Chưa có token</div>
+            </div>
+
+            <p class="footnote">
+              Token được lưu trong trình duyệt. Nếu trước đó bạn đã đăng nhập, trang sẽ tự chuyển sang khu điều khiển riêng.
+            </p>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <script>
+      const STORAGE_KEY = "robot-dashboard-token";
+      const AUTH_MESSAGE_KEY = "robot-dashboard-auth-message";
+      const authStatus = document.getElementById("authStatus");
+      const authMeta = document.getElementById("authMeta");
+      const tokenBox = document.getElementById("tokenBox");
+      const loginButton = document.getElementById("loginButton");
+
+      let token = localStorage.getItem(STORAGE_KEY) || "";
+
+      function updateAuthUi(message = "Hệ thống đang khóa trung tâm điều khiển.", state = "warn") {
+        authStatus.className = `status-pill ${state}`;
+        authStatus.textContent = token ? "Đã đăng nhập" : "Chưa đăng nhập";
+        authMeta.textContent = message;
+        tokenBox.textContent = token || "Chưa có token";
+      }
+
+      function redirectToControl() {
+        window.location.replace("/control");
+      }
+
+      async function login() {
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value;
+        loginButton.disabled = true;
+
+        try {
+          const response = await fetch("/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const data = await response.json();
+          token = data.access_token || "";
+          localStorage.setItem(STORAGE_KEY, token);
+          sessionStorage.removeItem(AUTH_MESSAGE_KEY);
+          updateAuthUi("Đăng nhập hợp lệ. Đang chuyển sang trung tâm điều khiển.", "ok");
+          setTimeout(redirectToControl, 250);
+        } catch (error) {
+          token = "";
+          localStorage.removeItem(STORAGE_KEY);
+          sessionStorage.setItem(AUTH_MESSAGE_KEY, "Đăng nhập thất bại. Kiểm tra lại tài khoản hoặc mật khẩu.");
+          updateAuthUi("Đăng nhập thất bại. Kiểm tra lại tài khoản hoặc mật khẩu.", "danger");
+        } finally {
+          loginButton.disabled = false;
+        }
+      }
+
+      const pendingMessage = sessionStorage.getItem(AUTH_MESSAGE_KEY);
+      if (token) {
+        updateAuthUi("Đã có token hợp lệ. Đang chuyển sang trung tâm điều khiển.", "ok");
+        setTimeout(redirectToControl, 150);
+      } else if (pendingMessage) {
+        updateAuthUi(pendingMessage, "warn");
+        sessionStorage.removeItem(AUTH_MESSAGE_KEY);
+      } else {
+        updateAuthUi();
+      }
+    </script>
+  </body>
+</html>

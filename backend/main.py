@@ -61,6 +61,11 @@ def dashboard():
     return FileResponse(BASE_DIR / "static" / "dashboard.html")
 
 
+@app.get("/login", tags=["UI"])
+def login_page():
+    return FileResponse(BASE_DIR / "static" / "login.html")
+
+
 @app.get("/control", tags=["UI"])
 def control_dashboard():
     return FileResponse(BASE_DIR / "static" / "control.html")
@@ -76,6 +81,22 @@ async def mqtt_publish(topic: str, payload: str):
     result = fast_mqtt.publish(topic, payload)
     if inspect.isawaitable(result):
         await result
+
+
+async def publish_status_ack(status_topic: str, packet_id: int | None):
+    if not packet_id:
+        return
+
+    ack_payload = json.dumps(
+        {
+            "packetId": packet_id,
+            "topic": status_topic,
+        }
+    )
+    try:
+        await mqtt_publish("gateway/status_ack", ack_payload)
+    except Exception as exc:
+        print(f"MQTT status ACK skipped: {exc}")
 
 
 @app.on_event("startup")
@@ -179,6 +200,7 @@ async def _handle_arm(obj: dict, raw: str):
             }
         )
     )
+    await publish_status_ack("servo/status", obj.get("packetId"))
 
 
 async def _handle_vehicle(obj: dict, raw: str):
@@ -211,10 +233,13 @@ async def _handle_vehicle(obj: dict, raw: str):
                 "curD": vehicle.cur_d,
                 "curE": vehicle.cur_e,
                 "isBalanced": vehicle.is_balanced,
+                "feedbackFault": obj.get("feedbackFault", False),
+                "postureLabel": obj.get("postureLabel"),
                 "created_at": vehicle.created_at.isoformat(),
             }
         )
     )
+    await publish_status_ack("vehicle/status", obj.get("packetId"))
 
 
 @app.websocket("/ws")

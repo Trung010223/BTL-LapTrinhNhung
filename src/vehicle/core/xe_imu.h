@@ -6,6 +6,7 @@
 void initIMU();
 void updateIMU();
 void xuLyCanBang(float pitch, float roll);
+const char *getPostureLabel();
 
 extern float pitchEMA, rollEMA;
 extern bool pitchActive, rollActive;

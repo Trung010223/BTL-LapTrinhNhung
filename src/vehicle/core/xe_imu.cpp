@@ -2,13 +2,20 @@
 #include <Wire.h>
 #include <MPU6050_light.h>
 #include "xe_imu.h"
+#include "xe_failsafe.h"
 #include "xe_motor.h"
 
 MPU6050 mpu6050(Wire);
 
+constexpr size_t MEDIAN_WINDOW = 5;
 const float EMA_ALPHA = 0.15f;
 float pitchEMA = 0.0f, rollEMA = 0.0f;
 bool emaInitialized = false;
+float pitchWindow[MEDIAN_WINDOW] = {0.0f};
+float rollWindow[MEDIAN_WINDOW] = {0.0f};
+size_t medianIndex = 0;
+size_t medianCount = 0;
+char postureLabel[16] = "UNKNOWN";
 
 const float HYST_HIGH = 4.0f;
 const float HYST_LOW = 2.0f;
@@ -21,6 +28,8 @@ extern bool latestCmd_stop;
 extern int latestCmd_direction;
 extern int latestCmd_speed;
 extern int latestCmd_lift;
+
+String angleToLabel(float pitch, float roll);
 
 namespace {
 // A=front-left, B=front-right, C=rear-left, D=rear-right
@@ -86,6 +95,30 @@ int detectLiftMask(float pitch, float roll) {
 
   return 0;
 }
+
+float medianFromWindow(const float *window, size_t count) {
+  float sorted[MEDIAN_WINDOW] = {0.0f};
+  for (size_t index = 0; index < count; index++) {
+    sorted[index] = window[index];
+  }
+
+  for (size_t left = 0; left < count; left++) {
+    for (size_t right = left + 1; right < count; right++) {
+      if (sorted[right] < sorted[left]) {
+        float tmp = sorted[left];
+        sorted[left] = sorted[right];
+        sorted[right] = tmp;
+      }
+    }
+  }
+
+  return sorted[count / 2];
+}
+
+void updatePostureLabel(float pitch, float roll) {
+  String nextLabel = angleToLabel(pitch, roll);
+  nextLabel.toCharArray(postureLabel, sizeof(postureLabel));
+}
 }
 
 void initIMU() {
@@ -96,14 +129,26 @@ void initIMU() {
 }
 
 void updateEMA(float rawPitch, float rawRoll) {
+  pitchWindow[medianIndex] = rawPitch;
+  rollWindow[medianIndex] = rawRoll;
+  medianIndex = (medianIndex + 1) % MEDIAN_WINDOW;
+  if (medianCount < MEDIAN_WINDOW) {
+    medianCount++;
+  }
+
+  float medianPitch = medianFromWindow(pitchWindow, medianCount);
+  float medianRoll = medianFromWindow(rollWindow, medianCount);
+
   if (!emaInitialized) {
-    pitchEMA = rawPitch;
-    rollEMA = rawRoll;
+    pitchEMA = medianPitch;
+    rollEMA = medianRoll;
     emaInitialized = true;
+    updatePostureLabel(pitchEMA, rollEMA);
     return;
   }
-  pitchEMA = EMA_ALPHA * rawPitch + (1.0f - EMA_ALPHA) * pitchEMA;
-  rollEMA = EMA_ALPHA * rawRoll + (1.0f - EMA_ALPHA) * rollEMA;
+  pitchEMA = EMA_ALPHA * medianPitch + (1.0f - EMA_ALPHA) * pitchEMA;
+  rollEMA = EMA_ALPHA * medianRoll + (1.0f - EMA_ALPHA) * rollEMA;
+  updatePostureLabel(pitchEMA, rollEMA);
 }
 
 bool updateHysteresis(float val, bool &active) {
@@ -129,8 +174,12 @@ void updateIMU() {
   updateEMA(rawPitch, rawRoll);
 }
 
+const char *getPostureLabel() {
+  return postureLabel;
+}
+
 void xuLyCanBang(float pitch, float roll) {
-  if (!cheDoCanBang || latestCmd_stop) {
+  if (vehicleFailsafeActive || !cheDoCanBang || latestCmd_stop) {
     stopAllMotors();
     pitchActive = rollActive = false;
     initBalanced = false;

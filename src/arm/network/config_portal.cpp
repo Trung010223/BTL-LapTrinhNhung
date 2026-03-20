@@ -13,11 +13,11 @@ DNSServer dnsServer;
 WebServer portalServer(80);
 const byte DNS_PORT = 53;
 
-const char *DEFAULT_WIFI_SSID = "Nhà 15 Trinh Lương";
-const char *DEFAULT_WIFI_PASS = "88888888";
+const char *DEFAULT_WIFI_SSID = "";
+const char *DEFAULT_WIFI_PASS = "";
 const char *DEFAULT_MQTT_SERVER = "192.168.100.248";
 const int DEFAULT_MQTT_PORT = 1884;
-const bool FORCE_DEFAULT_CONFIG = true;
+const bool FORCE_DEFAULT_CONFIG = false;
 }
 
 WifiConfig wifiCfg;

@@ -12,6 +12,8 @@ typedef struct {
   int16_t curD;          // Current measurement D
   int16_t curE;          // Current measurement E
   bool isBalanced;       // Balance status flag
+  bool feedbackFault;    // Feedback loop fault flag
+  char postureLabel[16]; // Semantic posture label
 } TelemetryPacket;
 
 // Command data structure for vehicle commands

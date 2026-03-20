@@ -16,3 +16,4 @@ void mqttFsmTick();
 
 MqttFsmState mqttGetState();
 int mqttGetRetryCount();
+int mqttGetAwaitingAckCount();

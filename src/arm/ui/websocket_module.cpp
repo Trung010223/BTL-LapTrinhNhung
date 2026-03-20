@@ -8,6 +8,17 @@
 #include "../network/mqtt_fsm.h"
 #include "../network/store_forward.h"
 
+void broadcastAlert(const String &message, const char *level) {
+  JsonDocument doc;
+  doc["type"] = "alert";
+  doc["msg"] = message;
+  doc["level"] = level;
+
+  String out;
+  serializeJson(doc, out);
+  webSocket.broadcastTXT(out);
+}
+
 void broadcastVacuumState() {
   JsonDocument doc;
   doc["type"] = "vacuum";
@@ -29,6 +40,8 @@ void broadcastTelemetry() {
   doc["curD"] = latestTele.curD;
   doc["curE"] = latestTele.curE;
   doc["isBalanced"] = latestTele.isBalanced;
+  doc["feedbackFault"] = latestTele.feedbackFault;
+  doc["postureLabel"] = latestTele.postureLabel;
 
   String out;
   serializeJson(doc, out);
@@ -39,6 +52,7 @@ void broadcastQueueStatus() {
   JsonDocument doc;
   doc["type"] = "queue";
   doc["pending"] = sfPending();
+  doc["awaitingAck"] = mqttGetAwaitingAckCount();
   doc["mqttState"] = (mqttGetState() == ROBOT_MQTT_CONNECTED) ? "connected" : "disconnected";
   doc["retries"] = mqttGetRetryCount();
 

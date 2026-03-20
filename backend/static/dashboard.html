@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Robot Monitoring Dashboard</title>
+    <title>MayHaiTre | Bảng Giám Sát</title>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
 
@@ -301,6 +301,20 @@
         color: var(--danger);
         background: rgba(255, 125, 125, 0.14);
       }
+      .rt-alert {
+        display: none;
+        border: 1px solid rgba(255, 127, 127, 0.38);
+        background: rgba(90, 16, 24, 0.55);
+        color: #ffd9d9;
+        border-radius: 14px;
+        padding: 12px 14px;
+        font-weight: 600;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+      }
+      .rt-alert.show {
+        display: block;
+        animation: fadeInUp 0.25s ease both;
+      }
       .arm-controls {
         display: grid;
         gap: 12px;
@@ -380,9 +394,9 @@
       <section class="hero">
         <div class="hero-top">
           <div>
-            <h1>Robot Monitoring Dashboard</h1>
+            <h1>Bảng giám sát robot thời gian thực</h1>
             <p>
-              Giao diện chỉ hiển thị thông tin realtime cho robot arm, xe và MPU.
+              Giao diện chỉ hiển thị thông tin thời gian thực cho tay máy, xe và MPU.
               Dữ liệu đồng bộ qua FastAPI, MQTT và WebSocket.
             </p>
           </div>
@@ -393,29 +407,31 @@
         </div>
       </section>
 
+      <section id="rtAlert" class="rt-alert"></section>
+
       <section class="grid">
         <article class="panel">
-          <h2>Arm mới nhất</h2>
+          <h2>Tay máy mới nhất</h2>
           <div id="armState" class="kv">Đang tải...</div>
         </article>
         <article class="panel">
-          <h2>Vehicle mới nhất</h2>
+          <h2>Xe mới nhất</h2>
           <div id="vehicleState" class="kv">Đang tải...</div>
         </article>
         <article class="panel">
           <h2>Trạng thái WebSocket</h2>
           <div id="wsState"><span class="status warn">Đang kết nối</span></div>
           <div style="margin-top: 12px">
-            API docs: <a href="/docs" target="_blank">/docs</a>
+            Tài liệu API: <a href="/docs" target="_blank">/docs</a>
           </div>
         </article>
       </section>
 
       <section class="panel">
-        <h2>Health Trạng thái hệ thống</h2>
+        <h2>Trạng thái sức khỏe hệ thống</h2>
         <div class="health-grid">
           <div class="health-item">
-            <div class="health-label">API Backend</div>
+            <div class="health-label">API nền</div>
             <div id="healthApi" class="health-value">
               <span class="dot warn"></span><span>Đang kiểm tra</span>
             </div>
@@ -429,14 +445,14 @@
             <div class="health-note" id="healthWsNote">-</div>
           </div>
           <div class="health-item">
-            <div class="health-label">Telemetry MPU</div>
+            <div class="health-label">Dữ liệu MPU</div>
             <div id="healthMpu" class="health-value">
               <span class="dot warn"></span><span>Chưa có dữ liệu</span>
             </div>
             <div class="health-note" id="healthMpuNote">-</div>
           </div>
           <div class="health-item">
-            <div class="health-label">Telemetry Arm</div>
+            <div class="health-label">Dữ liệu tay máy</div>
             <div id="healthArm" class="health-value">
               <span class="dot warn"></span><span>Chưa có dữ liệu</span>
             </div>
@@ -446,7 +462,7 @@
       </section>
 
       <section class="panel">
-        <h2>Thông tin MPU (Realtime)</h2>
+        <h2>Thông tin MPU thời gian thực</h2>
         <div class="mpu-grid">
           <div class="mpu-card">
             <div class="mpu-label">Pitch</div>
@@ -463,14 +479,14 @@
             <div id="mpuBalanced" class="mpu-value" style="font-size: 18px">
               -
             </div>
-            <div class="mpu-sub">Từ telemetry xe</div>
+            <div class="mpu-sub">Từ dữ liệu xe</div>
           </div>
           <div class="mpu-card">
             <div class="mpu-label">Cập nhật cuối</div>
             <div id="mpuUpdated" class="mpu-value" style="font-size: 18px">
               -
             </div>
-            <div class="mpu-sub">Thời gian local</div>
+            <div class="mpu-sub">Thời gian cục bộ</div>
           </div>
         </div>
         <div class="mpu-chart-wrap">
@@ -487,9 +503,9 @@
       </section>
 
       <section class="panel">
-        <h2>Sự kiện realtime</h2>
+        <h2>Sự kiện thời gian thực</h2>
         <div class="actions">
-          <button onclick="loadSnapshot()">Tải lại dữ liệu</button>
+          <button onclick="loadSnapshot()">Làm mới dữ liệu</button>
           <button onclick="clearLog()">Xóa log</button>
         </div>
         <div id="log" class="log" style="margin-top: 12px"></div>
@@ -498,12 +514,12 @@
       <section class="panel">
         <h2>Điều hướng</h2>
         <p class="muted" style="margin-bottom: 12px">
-          Trang này chỉ hiển thị thông tin và log realtime. Muốn gửi lệnh điều khiển,
+          Trang này chỉ hiển thị thông tin và log thời gian thực. Muốn gửi lệnh điều khiển,
           chuyển sang giao diện điều khiển riêng.
         </p>
         <div class="actions">
           <a class="nav-link" href="/control">Mở giao diện điều khiển</a>
-          <a class="nav-link" href="/docs" target="_blank">Mở API docs</a>
+          <a class="nav-link" href="/docs" target="_blank">Mở tài liệu API</a>
         </div>
       </section>
     </div>
@@ -522,6 +538,7 @@
       let lastWsMsgAt = 0;
       let lastVehicleAt = 0;
       let lastArmAt = 0;
+      let lastFeedbackFault = false;
 
       function ago(ts) {
         if (!ts) {
@@ -594,10 +611,10 @@
           "healthMpuNote",
           mpuLevel,
           mpuLevel === "ok"
-            ? "Realtime tốt"
+            ? "Dữ liệu tốt"
             : mpuLevel === "warn"
               ? "Đang chậm"
-              : "Mất telemetry",
+              : "Mất dữ liệu",
           `Mẫu MPU gần nhất: ${ago(lastVehicleAt)}`,
         );
 
@@ -608,11 +625,11 @@
           "healthArmNote",
           armLevel,
           armLevel === "ok"
-            ? "Realtime tốt"
+            ? "Dữ liệu tốt"
             : armLevel === "warn"
               ? "Đang chậm"
-              : "Mất telemetry",
-          `Mẫu arm gần nhất: ${ago(lastArmAt)}`,
+              : "Mất dữ liệu",
+          `Mẫu tay máy gần nhất: ${ago(lastArmAt)}`,
         );
       }
 
@@ -702,6 +719,15 @@
           return;
         }
 
+        let postureLabel = vehicle.postureLabel;
+        if (!postureLabel && vehicle.raw_data) {
+          try {
+            postureLabel = JSON.parse(vehicle.raw_data).postureLabel;
+          } catch (error) {
+            postureLabel = undefined;
+          }
+        }
+
         const pitchText = `${formatNum(vehicle.pitch)}°`;
         const rollText = `${formatNum(vehicle.roll)}°`;
 
@@ -710,9 +736,15 @@
 
         const balancedEl = document.getElementById("mpuBalanced");
         const isBalanced = Boolean(vehicle.is_balanced ?? vehicle.isBalanced);
-        balancedEl.innerHTML = isBalanced
-          ? '<span class="balanced-tag balanced-yes">CAN BANG</span>'
-          : '<span class="balanced-tag balanced-no">LECH</span>';
+        const feedbackFault = Boolean(vehicle.feedbackFault);
+        const postureText = postureLabel
+          ? String(postureLabel).replace(/_/g, " ")
+          : (isBalanced ? "CÂN BẰNG" : "LỆCH");
+        balancedEl.innerHTML = feedbackFault
+          ? '<span class="balanced-tag balanced-no">FEEDBACK FAULT</span>'
+          : (isBalanced
+            ? `<span class="balanced-tag balanced-yes">${postureText}</span>`
+            : `<span class="balanced-tag balanced-no">${postureText}</span>`);
 
         const stamp = new Date().toLocaleTimeString();
         document.getElementById("mpuUpdated").textContent = stamp;
@@ -720,7 +752,7 @@
         pushMpuSample(vehicle.pitch, vehicle.roll);
 
         mpuHistory.unshift(
-          `[${stamp}] pitch=${pitchText}, roll=${rollText}, balanced=${isBalanced}`,
+          `[${stamp}] độ_nghiêng_dọc=${pitchText}, độ_nghiêng_ngang=${rollText}, tư_thế=${postureText}, feedback_fault=${feedbackFault}, cân_bằng=${isBalanced}`,
         );
         if (mpuHistory.length > 10) {
           mpuHistory.length = 10;
@@ -749,6 +781,16 @@
         logEl.textContent = "";
       }
 
+      function showRealtimeAlert(message) {
+        const alertEl = document.getElementById("rtAlert");
+        alertEl.textContent = `Cảnh báo thời gian thực: ${message}`;
+        alertEl.classList.add("show");
+        clearTimeout(alertEl._hideTimer);
+        alertEl._hideTimer = setTimeout(() => {
+          alertEl.classList.remove("show");
+        }, 5000);
+      }
+
       async function loadSnapshot() {
         try {
           const [armRes, vehicleRes] = await Promise.all([
@@ -768,8 +810,8 @@
           }
 
           renderKV("armState", arm, [
-            ["Vacuum", "vacuum"],
-            ["Auto", "auto_mode"],
+            ["Hút", "vacuum"],
+            ["Tự động", "auto_mode"],
             ["S0", "s0_deg"],
             ["S1", "s1_deg"],
             ["S2", "s2_deg"],
@@ -777,17 +819,34 @@
           ]);
 
           renderKV("vehicleState", vehicle, [
-            ["Pitch", "pitch"],
-            ["Roll", "roll"],
+            ["Nghiêng dọc", "pitch"],
+            ["Nghiêng ngang", "roll"],
             ["A", "cur_a"],
             ["B", "cur_b"],
             ["C", "cur_c"],
-            ["Balanced", "is_balanced"],
+            ["Tư thế", "postureLabel"],
+            ["Feedback", "feedbackFault"],
+            ["Cân bằng", "is_balanced"],
           ]);
+
+          if (!vehicle.postureLabel && vehicle.raw_data) {
+            try {
+              vehicle.postureLabel = JSON.parse(vehicle.raw_data).postureLabel || "-";
+            } catch (error) {
+              vehicle.postureLabel = "-";
+            }
+          }
+
+          const snapshotFeedbackFault = Boolean(vehicle.feedbackFault);
+          if (snapshotFeedbackFault && !lastFeedbackFault) {
+            showRealtimeAlert("Xe kích hoạt feedback loop failsafe");
+            appendLog("[ALERT] Xe kích hoạt feedback loop failsafe");
+          }
+          lastFeedbackFault = snapshotFeedbackFault;
 
           updateMpuPanel(vehicle);
         } catch (error) {
-          appendLog("Loi tai snapshot: " + error.message);
+          appendLog("Lỗi tải dữ liệu tức thời: " + error.message);
         }
       }
 
@@ -799,7 +858,7 @@
           wsConnected = true;
           lastWsMsgAt = Date.now();
           wsState.innerHTML = '<span class="status ok">Đã kết nối</span>';
-          appendLog("WebSocket connected");
+          appendLog("WebSocket đã kết nối");
         };
 
         socket.onmessage = (event) => {
@@ -812,11 +871,16 @@
               loadSnapshot();
             }
             if (data.event === "vehicle_update") {
+              if (data.feedbackFault && !lastFeedbackFault) {
+                showRealtimeAlert("Xe kích hoạt feedback loop failsafe");
+                appendLog("[ALERT] Xe kích hoạt feedback loop failsafe");
+              }
+              lastFeedbackFault = Boolean(data.feedbackFault);
               updateMpuPanel(data);
               loadSnapshot();
             }
           } catch (error) {
-            appendLog("JSON parse error: " + error.message);
+            appendLog("Lỗi phân tích JSON: " + error.message);
           }
         };
 

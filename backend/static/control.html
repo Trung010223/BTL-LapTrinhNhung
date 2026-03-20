@@ -3,138 +3,439 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Robot Control Panel</title>
+    <title>MayHaiTre | Trung Tâm Điều Khiển</title>
     <style>
-      @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
 
       :root {
-        --bg-0: #081016;
-        --bg-1: #0c1b24;
-        --panel: #0f202d;
-        --line: #25445f;
-        --line-soft: #1b3348;
-        --text: #e6f2ff;
-        --muted: #9ab6cd;
-        --accent: #2bd4b3;
-        --accent-2: #6fe0ff;
-        --ok: #39d98a;
-        --warn: #ffbf69;
-        --danger: #ff7f7f;
+        --bg-0: #071116;
+        --bg-1: #0b1820;
+        --bg-2: #0e202a;
+        --panel: rgba(8, 18, 24, 0.78);
+        --panel-strong: rgba(11, 23, 30, 0.92);
+        --panel-soft: rgba(17, 34, 44, 0.78);
+        --line: rgba(128, 178, 204, 0.24);
+        --line-strong: rgba(145, 205, 236, 0.4);
+        --text: #edf7fb;
+        --muted: #90acbc;
+        --accent: #74f0c5;
+        --accent-2: #59c7ff;
+        --accent-3: #ffd36d;
+        --ok: #6cf5b6;
+        --warn: #ffcf6b;
+        --danger: #ff8579;
+        --shadow: 0 28px 60px rgba(0, 0, 0, 0.34);
       }
 
       * {
         box-sizing: border-box;
       }
 
+      html {
+        scroll-behavior: smooth;
+      }
+
       body {
         margin: 0;
         min-height: 100vh;
         padding: 24px;
-        font-family: "Space Grotesk", "Segoe UI", sans-serif;
         color: var(--text);
+        font-family: "Manrope", "Segoe UI", sans-serif;
         background:
-          radial-gradient(circle at 10% 15%, rgba(43, 212, 179, 0.17), transparent 30%),
-          radial-gradient(circle at 85% 10%, rgba(111, 224, 255, 0.12), transparent 32%),
-          linear-gradient(180deg, var(--bg-0), var(--bg-1) 60%, #0a1722);
+          radial-gradient(circle at 12% 14%, rgba(89, 199, 255, 0.17), transparent 26%),
+          radial-gradient(circle at 88% 10%, rgba(116, 240, 197, 0.14), transparent 28%),
+          radial-gradient(circle at 50% 100%, rgba(255, 211, 109, 0.08), transparent 30%),
+          linear-gradient(180deg, var(--bg-0), var(--bg-1) 42%, var(--bg-2));
       }
 
-      .wrap {
-        max-width: 1180px;
-        margin: 0 auto;
-        display: grid;
-        gap: 18px;
-      }
-
-      .hero,
-      .panel {
-        background: linear-gradient(180deg, rgba(15, 32, 45, 0.95), rgba(13, 28, 39, 0.92));
-        border: 1px solid var(--line);
-        border-radius: 18px;
-        padding: 18px;
-        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.03);
-      }
-
-      .hero {
-        display: grid;
-        gap: 14px;
-      }
-
-      .hero-head {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 16px;
-        flex-wrap: wrap;
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+        background-size: 22px 22px;
+        mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.6), transparent 94%);
       }
 
       h1,
       h2,
       h3,
+      h4,
       p {
         margin: 0;
       }
 
-      h1 {
-        font-size: 30px;
+      .shell {
+        max-width: 1440px;
+        margin: 0 auto;
+        display: grid;
+        gap: 18px;
       }
 
-      h2 {
-        font-size: 20px;
-        margin-bottom: 12px;
+      .hidden {
+        display: none !important;
       }
 
-      .hero p,
-      .note,
-      .muted {
+      .auth-shell {
+        max-width: 1160px;
+        min-height: calc(100vh - 48px);
+        margin: 0 auto;
+        display: grid;
+        align-items: center;
+      }
+
+      .auth-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(360px, 420px);
+        gap: 18px;
+        align-items: stretch;
+      }
+
+      .auth-panel,
+      .auth-visual {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        background: linear-gradient(180deg, rgba(12, 25, 33, 0.96), rgba(8, 17, 23, 0.94));
+        box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        padding: 24px;
+      }
+
+      .auth-panel::after,
+      .auth-visual::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), transparent 30%, transparent 70%, rgba(89, 199, 255, 0.06));
+      }
+
+      .auth-visual {
+        display: grid;
+        align-content: space-between;
+        gap: 20px;
+        background:
+          radial-gradient(circle at 20% 15%, rgba(89, 199, 255, 0.18), transparent 24%),
+          radial-gradient(circle at 80% 10%, rgba(116, 240, 197, 0.16), transparent 25%),
+          linear-gradient(180deg, rgba(10, 21, 29, 0.98), rgba(7, 14, 20, 0.98));
+      }
+
+      .auth-title {
+        font-size: clamp(34px, 5vw, 62px);
+        line-height: 0.94;
+        letter-spacing: -0.05em;
+        max-width: 10ch;
+        margin-top: 16px;
+      }
+
+      .auth-copy {
+        margin-top: 16px;
         color: var(--muted);
+        line-height: 1.7;
+        max-width: 58ch;
+      }
+
+      .auth-rack {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .auth-rack-item {
+        padding: 14px;
+        border-radius: 18px;
+        border: 1px solid rgba(137, 173, 196, 0.18);
+        background: rgba(4, 12, 17, 0.62);
+      }
+
+      .auth-rack-item strong {
+        display: block;
+        margin-top: 8px;
+        font-size: 18px;
+      }
+
+      .auth-form {
+        display: grid;
+        gap: 18px;
+        align-content: center;
+      }
+
+      .auth-form-head h2 {
+        font-size: 28px;
+        letter-spacing: -0.03em;
+      }
+
+      .auth-form-head p {
+        margin-top: 10px;
+        color: var(--muted);
+        line-height: 1.65;
+      }
+
+      .auth-status-box {
+        padding: 14px;
+        border-radius: 18px;
+        border: 1px solid rgba(123, 162, 183, 0.18);
+        background: rgba(3, 10, 14, 0.8);
+        display: grid;
+        gap: 8px;
+      }
+
+      .auth-status-box .status-pill {
+        width: fit-content;
+      }
+
+      .auth-footnote {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .panel,
+      .hero,
+      .sidebar-card,
+      .module {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, rgba(12, 25, 33, 0.94), rgba(8, 17, 23, 0.92));
+        border-radius: 24px;
+        box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      }
+
+      .hero,
+      .panel,
+      .sidebar-card,
+      .module {
+        padding: 20px;
+      }
+
+      .hero::after,
+      .panel::after,
+      .sidebar-card::after,
+      .module::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.045), transparent 26%, transparent 70%, rgba(89, 199, 255, 0.05));
+      }
+
+      .hero {
+        display: grid;
+        gap: 18px;
+      }
+
+      .hero-top {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(300px, 0.8fr);
+        gap: 18px;
+        align-items: start;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: var(--accent-2);
+        background: rgba(89, 199, 255, 0.1);
+        border: 1px solid rgba(89, 199, 255, 0.22);
+      }
+
+      .hero h1 {
+        margin-top: 16px;
+        font-size: clamp(34px, 4vw, 56px);
+        line-height: 0.96;
+        letter-spacing: -0.04em;
+        max-width: none;
+        text-align: center;
+        white-space: nowrap;
+      }
+
+      .hero-heading-row {
+        display: grid;
+        justify-items: center;
+        gap: 14px;
+      }
+
+      .hero-copy {
+        color: var(--muted);
+        margin-top: 14px;
+        max-width: 62ch;
+        line-height: 1.6;
+      }
+
+      .hero-actions {
+        margin-top: 18px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
       }
 
       .top-nav {
         display: flex;
         gap: 10px;
         flex-wrap: wrap;
+        justify-content: flex-end;
       }
 
-      .nav-link {
+      .nav-link,
+      .link-button {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-height: 42px;
-        padding: 0 14px;
+        min-height: 44px;
+        padding: 0 16px;
         border-radius: 999px;
         border: 1px solid var(--line);
+        background: rgba(10, 18, 24, 0.72);
         color: var(--text);
         text-decoration: none;
-        background: rgba(12, 27, 36, 0.65);
+        font-weight: 700;
       }
 
-      .nav-link.active {
-        border-color: var(--accent);
-        background: rgba(43, 212, 179, 0.16);
+      .nav-link.active,
+      .link-button.primary {
+        border-color: rgba(116, 240, 197, 0.34);
+        background: linear-gradient(180deg, rgba(116, 240, 197, 0.18), rgba(116, 240, 197, 0.08));
       }
 
-      .grid {
+      .hero-rack {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 14px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
       }
 
-      .auth-grid {
+      .rack-item {
+        padding: 14px;
+        border-radius: 18px;
+        border: 1px solid rgba(137, 173, 196, 0.18);
+        background: rgba(4, 12, 17, 0.62);
+      }
+
+      .rack-label {
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .rack-value {
+        margin-top: 8px;
+        font-size: 18px;
+        font-weight: 800;
+      }
+
+      .rack-sub {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .status-pill,
+      .status-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 999px;
+        font-weight: 800;
+      }
+
+      .status-pill {
+        padding: 10px 14px;
+        width: fit-content;
+      }
+
+      .status-chip {
+        padding: 7px 10px;
+        font-size: 12px;
+      }
+
+      .ok {
+        background: rgba(108, 245, 182, 0.12);
+        color: var(--ok);
+      }
+
+      .warn {
+        background: rgba(255, 207, 107, 0.12);
+        color: var(--warn);
+      }
+
+      .danger {
+        background: rgba(255, 133, 121, 0.12);
+        color: var(--danger);
+      }
+
+      .layout {
         display: grid;
-        grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
-        gap: 14px;
+        grid-template-columns: 350px minmax(0, 1fr);
+        gap: 18px;
+        align-items: start;
       }
 
-      .input-grid {
+      .sidebar {
+        display: grid;
+        gap: 18px;
+        position: sticky;
+        top: 24px;
+      }
+
+      .sidebar-card {
+        display: grid;
+        gap: 16px;
+      }
+
+      .section-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .section-title h2,
+      .module-head h2 {
+        font-size: 22px;
+        letter-spacing: -0.02em;
+      }
+
+      .section-note,
+      .muted,
+      .note {
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .input-grid,
+      .mini-grid,
+      .metrics-grid,
+      .servo-grid,
+      .preset-grid,
+      .vehicle-grid,
+      .module-stack {
         display: grid;
         gap: 12px;
       }
 
+      .mini-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
       label {
         display: grid;
-        gap: 6px;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
         color: var(--muted);
-        font-size: 14px;
       }
 
       input[type="text"],
@@ -145,41 +446,73 @@
 
       input[type="text"],
       input[type="password"] {
-        min-height: 44px;
-        padding: 0 14px;
-        border-radius: 12px;
-        border: 1px solid var(--line-soft);
-        background: #091621;
+        min-height: 50px;
+        padding: 0 16px;
+        border-radius: 16px;
+        border: 1px solid rgba(127, 170, 191, 0.22);
+        background: rgba(3, 10, 14, 0.9);
         color: var(--text);
         font: inherit;
+        outline: none;
+      }
+
+      input[type="text"]:focus,
+      input[type="password"]:focus {
+        border-color: rgba(89, 199, 255, 0.42);
+        box-shadow: 0 0 0 4px rgba(89, 199, 255, 0.08);
       }
 
       input[type="range"] {
         accent-color: var(--accent);
       }
 
-      .status-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 7px 12px;
-        border-radius: 999px;
-        font-weight: 600;
+      button {
+        min-height: 46px;
+        border-radius: 14px;
+        border: 1px solid rgba(124, 177, 206, 0.24);
+        background: linear-gradient(180deg, rgba(21, 45, 60, 0.96), rgba(12, 26, 36, 0.96));
+        color: var(--text);
+        font: inherit;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition:
+          transform 0.16s ease,
+          border-color 0.16s ease,
+          box-shadow 0.16s ease,
+          filter 0.16s ease;
       }
 
-      .ok {
-        background: rgba(57, 217, 138, 0.16);
-        color: var(--ok);
+      button:hover {
+        transform: translateY(-1px);
+        border-color: rgba(116, 240, 197, 0.4);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+        filter: brightness(1.04);
       }
 
-      .warn {
-        background: rgba(255, 191, 105, 0.16);
-        color: var(--warn);
+      button.secondary {
+        background: rgba(5, 12, 17, 0.94);
       }
 
-      .danger {
-        background: rgba(255, 127, 127, 0.16);
-        color: var(--danger);
+      button.ghost {
+        background: rgba(8, 17, 24, 0.4);
+      }
+
+      button.attention {
+        border-color: rgba(255, 211, 109, 0.4);
+        background: linear-gradient(180deg, rgba(93, 60, 17, 0.92), rgba(51, 32, 10, 0.92));
+      }
+
+      button.stop {
+        border-color: rgba(255, 133, 121, 0.42);
+        background: linear-gradient(180deg, rgba(98, 34, 30, 0.96), rgba(54, 17, 15, 0.96));
+      }
+
+      button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
       }
 
       .actions {
@@ -188,238 +521,836 @@
         flex-wrap: wrap;
       }
 
-      button {
-        min-height: 42px;
-        padding: 0 14px;
-        border-radius: 10px;
-        border: 1px solid var(--line);
-        background: linear-gradient(180deg, #173047, #13283b);
-        color: var(--text);
-        cursor: pointer;
-        font: inherit;
+      .actions.stretch > * {
+        flex: 1 1 0;
       }
 
-      button:hover {
-        border-color: var(--accent);
+      .token-box,
+      .log {
+        border-radius: 18px;
+        border: 1px solid rgba(122, 161, 182, 0.2);
+        background: rgba(3, 9, 13, 0.88);
+        font-family: "IBM Plex Mono", Consolas, monospace;
       }
 
-      button.secondary {
-        background: rgba(10, 22, 33, 0.85);
+      .token-box {
+        min-height: 168px;
+        padding: 14px;
+        overflow-wrap: anywhere;
+        font-size: 12px;
+        line-height: 1.65;
       }
 
-      button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
+      .metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
-      .card-grid {
+      .metric-card {
+        padding: 14px;
+        border-radius: 18px;
+        background: rgba(5, 13, 18, 0.82);
+        border: 1px solid rgba(121, 163, 186, 0.16);
+      }
+
+      .metric-label {
+        font-size: 12px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+      }
+
+      .metric-value {
+        margin-top: 8px;
+        font-size: 26px;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+      }
+
+      .metric-foot {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .command-surface {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 18px;
+      }
+
+      .toolbar-stack {
+        display: grid;
         gap: 14px;
       }
 
-      .control-card {
-        border: 1px solid var(--line-soft);
-        border-radius: 14px;
-        padding: 14px;
-        background: rgba(8, 20, 32, 0.78);
+      .toolbar-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+
+      .toolbar-card {
+        padding: 16px;
+        border-radius: 20px;
+        border: 1px solid rgba(124, 171, 195, 0.18);
+        background: linear-gradient(180deg, rgba(14, 27, 35, 0.92), rgba(8, 16, 22, 0.92));
+        display: grid;
+        gap: 14px;
+      }
+
+      .toolbar-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .toolbar-title {
+        font-size: 18px;
+        font-weight: 800;
+      }
+
+      .toolbar-copy {
+        color: var(--muted);
+        line-height: 1.5;
+        max-width: 50ch;
+        font-size: 14px;
+      }
+
+      .toolbar-actions {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .toolbar-actions.wide {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .toolbar-actions.compact {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .toolbar-metric {
+        padding: 12px 14px;
+        border-radius: 16px;
+        border: 1px solid rgba(122, 161, 182, 0.18);
+        background: rgba(3, 9, 13, 0.72);
+      }
+
+      .toolbar-metric-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+      }
+
+      .toolbar-metric-value {
+        margin-top: 8px;
+        font-family: "IBM Plex Mono", Consolas, monospace;
+        font-size: 22px;
+        color: var(--accent-2);
+        font-weight: 700;
+      }
+
+      .module-stack {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .module {
+        display: grid;
+        gap: 16px;
+      }
+
+      .module-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+
+      .module-copy {
+        color: var(--muted);
+        max-width: 56ch;
+        line-height: 1.55;
+      }
+
+      .servo-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       .slider-row {
         display: grid;
-        grid-template-columns: 80px 1fr 60px;
-        gap: 10px;
+        grid-template-columns: 72px 1fr 60px;
+        gap: 12px;
         align-items: center;
-        margin-top: 10px;
       }
 
+      .servo-card,
+      .preset-card,
+      .vehicle-card,
+      .arm-quick-card {
+        padding: 16px;
+        border-radius: 20px;
+        border: 1px solid rgba(124, 171, 195, 0.18);
+        background: linear-gradient(180deg, rgba(14, 27, 35, 0.92), rgba(8, 16, 22, 0.92));
+      }
+
+      .servo-head,
+      .preset-head,
+      .vehicle-card h3,
+      .arm-quick-card h3 {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .servo-name,
+      .preset-title,
+      .vehicle-card h3,
+      .arm-quick-card h3 {
+        font-size: 16px;
+        font-weight: 800;
+      }
+
+      .servo-value,
       .slider-value {
-        text-align: right;
+        font-family: "IBM Plex Mono", Consolas, monospace;
+        font-weight: 700;
         color: var(--accent-2);
-        font-weight: 600;
       }
 
-      .log {
-        min-height: 220px;
-        padding: 12px;
-        border-radius: 12px;
-        border: 1px solid var(--line-soft);
-        background: #081420;
-        white-space: pre-wrap;
-        font-family: "JetBrains Mono", Consolas, monospace;
-        font-size: 13px;
+      .servo-range {
+        margin-top: 14px;
       }
 
-      .token-box {
-        min-height: 120px;
-        padding: 12px;
-        border-radius: 12px;
-        border: 1px solid var(--line-soft);
-        background: #081420;
-        overflow-wrap: anywhere;
-        font-family: "JetBrains Mono", Consolas, monospace;
+      .servo-meta {
+        margin-top: 10px;
+        display: flex;
+        justify-content: space-between;
+        color: var(--muted);
         font-size: 12px;
       }
 
-      @media (max-width: 860px) {
+      .quick-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .quick-grid button {
+        min-height: 72px;
+      }
+
+      .vehicle-grid {
+        grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+      }
+
+      .speed-dial {
+        display: grid;
+        place-items: center;
+        min-height: 280px;
+        border-radius: 24px;
+        border: 1px solid rgba(124, 170, 193, 0.2);
+        background:
+          radial-gradient(circle at 50% 45%, rgba(89, 199, 255, 0.12), transparent 38%),
+          linear-gradient(180deg, rgba(11, 24, 32, 0.98), rgba(6, 12, 17, 0.98));
+      }
+
+      .dial-core {
+        width: 210px;
+        height: 210px;
+        border-radius: 50%;
+        position: relative;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at 50% 50%, rgba(6, 13, 18, 0.88) 0 54%, transparent 54%),
+          conic-gradient(from 180deg, rgba(255, 133, 121, 0.22), rgba(255, 211, 109, 0.86), rgba(116, 240, 197, 0.95), rgba(89, 199, 255, 0.84), rgba(255, 133, 121, 0.22));
+      }
+
+      .dial-core::before {
+        content: "";
+        position: absolute;
+        inset: 16px;
+        border-radius: 50%;
+        background: rgba(5, 12, 16, 0.92);
+        border: 1px solid rgba(121, 166, 189, 0.18);
+      }
+
+      .dial-fill {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: conic-gradient(from 180deg, rgba(116, 240, 197, 0.95) var(--dial-fill, 0%), rgba(255, 255, 255, 0.04) var(--dial-fill, 0%));
+        -webkit-mask: radial-gradient(circle, transparent 56%, black 57%);
+                mask: radial-gradient(circle, transparent 56%, black 57%);
+        opacity: 0.8;
+      }
+
+      .dial-content {
+        position: relative;
+        display: grid;
+        gap: 8px;
+        justify-items: center;
+        z-index: 1;
+      }
+
+      .dial-kicker {
+        font-size: 12px;
+        color: var(--muted);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .dial-value {
+        font-size: 52px;
+        font-weight: 800;
+        letter-spacing: -0.05em;
+      }
+
+      .dial-label {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .speed-meta {
+        margin-top: 14px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .meta-bar {
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+      }
+
+      .meta-bar span {
+        display: block;
+        height: 100%;
+        width: 0%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--accent-3), var(--accent), var(--accent-2));
+      }
+
+      .drive-pad {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        align-items: center;
+      }
+
+      .drive-pad .blank {
+        min-height: 62px;
+      }
+
+      .drive-pad button {
+        min-height: 72px;
+      }
+
+      .lift-grid,
+      .preset-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .preset-card {
+        display: grid;
+        gap: 10px;
+      }
+
+      .preset-tag {
+        width: fit-content;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 800;
+        background: rgba(89, 199, 255, 0.1);
+        color: var(--accent-2);
+      }
+
+      .log-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .log {
+        min-height: 260px;
+        padding: 16px;
+        white-space: pre-wrap;
+        line-height: 1.62;
+        font-size: 13px;
+      }
+
+      .log-count {
+        font-family: "IBM Plex Mono", Consolas, monospace;
+        color: var(--accent-2);
+        font-weight: 700;
+      }
+
+      .footer-note {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .kbd {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 28px;
+        height: 28px;
+        padding: 0 8px;
+        border-radius: 10px;
+        border: 1px solid rgba(123, 163, 183, 0.24);
+        background: rgba(5, 12, 16, 0.9);
+        color: var(--text);
+        font-family: "IBM Plex Mono", Consolas, monospace;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      @media (max-width: 1180px) {
+        .auth-layout,
+        .layout,
+        .hero-top,
+        .vehicle-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          position: static;
+        }
+
+        .hero-rack,
+        .module-stack,
+        .servo-grid,
+        .preset-grid,
+        .lift-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 760px) {
         body {
           padding: 14px;
         }
 
-        .auth-grid {
+        .auth-shell {
+          min-height: auto;
+        }
+
+        .auth-panel,
+        .auth-visual,
+        .hero,
+        .panel,
+        .sidebar-card,
+        .module {
+          padding: 16px;
+          border-radius: 20px;
+        }
+
+        .auth-rack {
           grid-template-columns: 1fr;
         }
 
+        .hero h1 {
+          max-width: none;
+        }
+
+        .hero-rack,
+        .metrics-grid,
+        .mini-grid,
+        .module-stack,
+        .servo-grid,
+        .toolbar-grid,
+        .preset-grid,
+        .lift-grid,
+        .quick-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .toolbar-actions,
+        .toolbar-actions.wide,
+        .toolbar-actions.compact {
+          grid-template-columns: 1fr;
+        }
+
+        .drive-pad {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
         .slider-row {
-          grid-template-columns: 70px 1fr 52px;
+          grid-template-columns: 64px 1fr 54px;
+          gap: 10px;
+        }
+
+        .dial-core {
+          width: 180px;
+          height: 180px;
+        }
+
+        .dial-value {
+          font-size: 42px;
         }
       }
     </style>
   </head>
   <body>
-    <div class="wrap">
+    <div class="shell">
       <section class="hero">
-        <div class="hero-head">
+        <div class="hero-top">
           <div>
-            <h1>Robot Control Panel</h1>
-            <p>
-              Giao diện điều khiển riêng cho tay máy và xe. Trang này dùng JWT
-              để gửi lệnh tới API bảo vệ.
+            <div class="hero-heading-row">
+              <span class="eyebrow">MayHaiTre</span>
+              <h1>Trung tâm điều khiển</h1>
+            </div>
+            <p class="hero-copy">
+              Đây là khu điều khiển riêng. Nếu không có token hợp lệ, trang sẽ quay lại màn hình đăng nhập tách biệt.
             </p>
+            <div class="hero-actions">
+              <a class="link-button primary" href="#commandSurface">Mở bảng điều khiển</a>
+              <a class="nav-link" href="/docs" target="_blank">Tài liệu API</a>
+            </div>
           </div>
-          <nav class="top-nav">
-            <a class="nav-link" href="/dashboard">Giao diện thông tin</a>
-            <a class="nav-link active" href="/control">Giao diện điều khiển</a>
-          </nav>
+          <div>
+            <nav class="top-nav">
+              <a class="nav-link" href="/dashboard">Màn hình giám sát</a>
+              <a class="nav-link active" href="/control">Màn hình điều khiển</a>
+            </nav>
+          </div>
         </div>
-        <div id="authStatus" class="status-pill warn">Chưa đăng nhập</div>
+
+        <div class="hero-rack">
+          <div class="rack-item">
+            <div class="rack-label">Người vận hành</div>
+            <div id="authStatus" class="status-pill warn">Chưa đăng nhập</div>
+            <div id="authMeta" class="rack-sub">Khóa điều khiển đang tắt</div>
+          </div>
+          <div class="rack-item">
+            <div class="rack-label">Đích API</div>
+            <div class="rack-value">FastAPI nội bộ</div>
+            <div class="rack-sub">/arm/control, /v/command, /auth/login</div>
+          </div>
+          <div class="rack-item">
+            <div class="rack-label">Hồ sơ lái</div>
+            <div id="speedProfile" class="rack-value">120 PWM</div>
+            <div class="rack-sub">Biên độ lệnh xe đang chọn</div>
+          </div>
+          <div class="rack-item">
+            <div class="rack-label">Hoạt động</div>
+            <div id="commandBadge" class="rack-value">0 lệnh</div>
+            <div class="rack-sub">Nhật ký thao tác phiên hiện tại</div>
+          </div>
+        </div>
       </section>
 
-      <section class="panel auth-grid">
-        <div>
-          <h2>Đăng nhập điều khiển</h2>
-          <div class="input-grid" style="margin-top: 12px">
-            <label>
-              Tài khoản
-              <input id="username" type="text" value="admin" />
-            </label>
-            <label>
-              Mật khẩu
-              <input id="password" type="password" value="" placeholder="Nhập mật khẩu" />
-            </label>
+      <section class="layout">
+        <aside class="sidebar">
+          <article class="sidebar-card">
+            <div class="section-title">
+              <h2>Phiên điều khiển</h2>
+              <span id="sessionChip" class="status-chip warn">Ngoại tuyến</span>
+            </div>
+            <p class="section-note">
+              Trung tâm điều khiển chỉ mở khi có JWT hợp lệ. Bạn có thể kết thúc phiên để quay lại màn hình đăng nhập riêng.
+            </p>
+            <div class="rack-item">
+              <div class="rack-label">Mã phiên</div>
+              <div id="tokenBox" class="token-box">Chưa có token</div>
+            </div>
             <div class="actions">
-              <button onclick="login()">Lấy token</button>
-              <button class="secondary" onclick="logout()">Xóa token</button>
+              <button class="secondary" onclick="logout()">Thoát phiên điều khiển</button>
+              <a class="nav-link" href="/login">Đổi tài khoản</a>
             </div>
-          </div>
-        </div>
-        <div>
-          <h2>JWT hiện tại</h2>
-          <div id="tokenBox" class="token-box">Chưa có token</div>
-          <p class="note" style="margin-top: 10px">
-            Token được lưu trong trình duyệt để dùng lại khi reload trang.
-          </p>
-        </div>
-      </section>
+          </article>
 
-      <section class="panel">
-        <h2>Điều khiển cánh tay</h2>
-        <div class="card-grid">
-          <div class="control-card">
-            <h3>Lệnh nhanh</h3>
-            <div class="actions" style="margin-top: 12px">
-              <button data-auth onclick="armCmd('home')">Home</button>
-              <button data-auth onclick="armCmd('auto')">Auto</button>
-              <button data-auth onclick="armCmd('stop')">Stop</button>
-              <button data-auth onclick="armCmd('cut')">Cut / Vacuum</button>
+          <article class="sidebar-card">
+            <h2>Phiên vận hành</h2>
+            <div class="metrics-grid">
+              <div class="metric-card">
+                <div class="metric-label">Chế độ tay máy</div>
+                <div class="metric-value">Thủ công</div>
+                <div class="metric-foot">Điều khiển trực tiếp qua API</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Xe</div>
+                <div id="speedModeCard" class="metric-value">Hành trình</div>
+                <div class="metric-foot">Theo giá trị PWM hiện tại</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">An toàn</div>
+                <div class="metric-value">JWT</div>
+                <div class="metric-foot">Không gửi lệnh khi chưa xác thực</div>
+              </div>
+              <div class="metric-card">
+                <div class="metric-label">Bộ đệm log</div>
+                <div id="logCountMetric" class="metric-value">0</div>
+                <div class="metric-foot">Dòng log trong phiên</div>
+              </div>
             </div>
-          </div>
-          <div class="control-card">
-            <h3>Servo chi tiết</h3>
-            <div class="slider-row">
-              <span>Servo 0</span>
-              <input id="s0" type="range" min="150" max="600" value="330" oninput="setServoLabel(0, this.value)" />
-              <span id="v0" class="slider-value">330</span>
-            </div>
-            <div class="slider-row">
-              <span>Servo 1</span>
-              <input id="s1" type="range" min="150" max="600" value="150" oninput="setServoLabel(1, this.value)" />
-              <span id="v1" class="slider-value">150</span>
-            </div>
-            <div class="slider-row">
-              <span>Servo 2</span>
-              <input id="s2" type="range" min="150" max="600" value="300" oninput="setServoLabel(2, this.value)" />
-              <span id="v2" class="slider-value">300</span>
-            </div>
-            <div class="slider-row">
-              <span>Servo 3</span>
-              <input id="s3" type="range" min="150" max="600" value="410" oninput="setServoLabel(3, this.value)" />
-              <span id="v3" class="slider-value">410</span>
-            </div>
-            <div class="actions" style="margin-top: 12px">
-              <button data-auth onclick="sendServo(0)">Gửi Servo 0</button>
-              <button data-auth onclick="sendServo(1)">Gửi Servo 1</button>
-              <button data-auth onclick="sendServo(2)">Gửi Servo 2</button>
-              <button data-auth onclick="sendServo(3)">Gửi Servo 3</button>
-            </div>
-          </div>
-        </div>
-      </section>
+          </article>
+        </aside>
 
-      <section class="panel">
-        <h2>Điều khiển xe</h2>
-        <div class="card-grid">
-          <div class="control-card">
-            <h3>Tốc độ và hướng</h3>
-            <div class="slider-row">
-              <span>Tốc độ</span>
-              <input id="vehSpeed" type="range" min="-255" max="255" value="120" oninput="setVehicleSpeedLabel(this.value)" />
-              <span id="vehSpeedValue" class="slider-value">120</span>
+        <div id="commandSurface" class="command-surface">
+          <section class="module toolbar-stack">
+            <div class="module-head">
+              <div>
+                <h2>Cụm công cụ điều khiển</h2>
+                <p class="module-copy">
+                  Các nhóm điều khiển được tách riêng theo thiết bị để thao tác nhanh hơn: xe chạy, quạt hoặc hút, nâng hạ và tay cắt.
+                </p>
+              </div>
+              <span class="status-chip ok">Thanh công cụ</span>
             </div>
-            <div class="actions" style="margin-top: 12px">
-              <button data-auth onclick="vehicleCmd(currentVehicleSpeed(), 0, 0, false)">Tiến</button>
-              <button data-auth onclick="vehicleCmd(-currentVehicleSpeed(), 0, 0, false)">Lùi</button>
-              <button data-auth onclick="vehicleCmd(currentVehicleSpeed(), -1, 0, false)">Rẽ trái</button>
-              <button data-auth onclick="vehicleCmd(currentVehicleSpeed(), 1, 0, false)">Rẽ phải</button>
-              <button data-auth onclick="vehicleCmd(0, 0, 0, true)">Dừng xe</button>
+
+            <div class="toolbar-grid">
+              <article class="toolbar-card">
+                <div class="toolbar-head">
+                  <div>
+                    <div class="toolbar-title">Điều khiển xe</div>
+                    <div class="toolbar-copy">Điều hướng chuyển động và chỉnh mức PWM trước khi chạy tiến, lùi hoặc rẽ.</div>
+                  </div>
+                  <span class="status-chip ok">Xe</span>
+                </div>
+
+                <div class="toolbar-metric">
+                  <div class="toolbar-metric-label">Công suất lái</div>
+                  <div id="speedDialValue" class="toolbar-metric-value">120</div>
+                  <div id="speedDialLabel" class="rack-sub">Hồ sơ hành trình</div>
+                </div>
+
+                <div class="speed-meta">
+                  <div class="slider-row">
+                    <span>Tốc độ</span>
+                    <input id="vehSpeed" type="range" min="-255" max="255" value="120" oninput="setVehicleSpeedLabel(this.value)" />
+                    <span id="vehSpeedValue" class="slider-value">120</span>
+                  </div>
+                  <div class="meta-bar"><span id="speedBar"></span></div>
+                </div>
+
+                <div class="toolbar-actions compact">
+                  <button data-auth onclick="vehicleCmd(currentVehicleSpeed(), 0, 0, false)">Tiến</button>
+                  <button data-auth onclick="vehicleCmd(-currentVehicleSpeed(), 0, 0, false)">Lùi</button>
+                  <button data-auth onclick="vehicleCmd(currentVehicleSpeed(), -1, 0, false)">Rẽ trái</button>
+                  <button data-auth onclick="vehicleCmd(currentVehicleSpeed(), 1, 0, false)">Rẽ phải</button>
+                </div>
+
+                <div class="actions">
+                  <button data-auth class="stop" onclick="vehicleCmd(0, 0, 0, true)">Dừng xe</button>
+                  <button data-auth class="attention" onclick="runPreset('forwardNudge')">Nhích tiến</button>
+                </div>
+              </article>
+
+              <article class="toolbar-card">
+                <div class="toolbar-head">
+                  <div>
+                    <div class="toolbar-title">Điều khiển quạt hoặc hút</div>
+                    <div class="toolbar-copy">Hệ thống hiện dùng lệnh cut để kích hoạt đầu hút hoặc cắt. Nhóm này gom riêng phần đó để không lẫn với chuyển động xe.</div>
+                  </div>
+                  <span class="status-chip warn">Hút / Cắt</span>
+                </div>
+
+                <div class="toolbar-actions wide">
+                  <button data-auth class="attention" onclick="armCmd('cut')">Bật quạt hoặc hút</button>
+                  <button data-auth class="stop" onclick="armCmd('stop')">Dừng quạt hoặc cắt</button>
+                </div>
+
+                <div class="toolbar-actions wide">
+                  <button data-auth onclick="armCmd('home')">Về vị trí an toàn</button>
+                  <button data-auth onclick="runPreset('safeStop')">Dừng an toàn toàn hệ</button>
+                </div>
+              </article>
+
+              <article class="toolbar-card">
+                <div class="toolbar-head">
+                  <div>
+                    <div class="toolbar-title">Điều khiển nâng hạ</div>
+                    <div class="toolbar-copy">Nhóm riêng cho trục nâng hạ của xe, tránh bấm nhầm với cụm lái.</div>
+                  </div>
+                  <span class="status-chip ok">Nâng hạ</span>
+                </div>
+
+                <div class="toolbar-actions">
+                  <button data-auth onclick="vehicleCmd(0, 0, 1, false)">Nâng lên</button>
+                  <button data-auth onclick="vehicleCmd(0, 0, 0, false)">Giữ vị trí</button>
+                  <button data-auth onclick="vehicleCmd(0, 0, -1, false)">Hạ xuống</button>
+                </div>
+
+                <div class="toolbar-actions wide">
+                  <button data-auth onclick="runPreset('mpuCheck')">Kiểm tra MPU</button>
+                  <button data-auth class="stop" onclick="vehicleCmd(0, 0, 0, true)">Dừng khẩn xe</button>
+                </div>
+              </article>
+
+              <article class="toolbar-card">
+                <div class="toolbar-head">
+                  <div>
+                    <div class="toolbar-title">Điều khiển tay cắt</div>
+                    <div class="toolbar-copy">Tách riêng các lệnh tay máy và chỉnh từng servo cho đầu cắt.</div>
+                  </div>
+                  <span class="status-chip ok">Tay máy</span>
+                </div>
+
+                <div class="toolbar-actions compact">
+                  <button data-auth onclick="armCmd('home')">Về gốc</button>
+                  <button data-auth onclick="armCmd('auto')">Tự động</button>
+                  <button data-auth class="stop" onclick="armCmd('stop')">Dừng</button>
+                  <button data-auth class="attention" onclick="armCmd('cut')">Cắt</button>
+                </div>
+              </article>
             </div>
-          </div>
-          <div class="control-card">
-            <h3>Nâng hạ và preset</h3>
+
+            <div class="servo-grid">
+              <div class="servo-card">
+                <div class="servo-head">
+                  <span class="servo-name">Servo 0</span>
+                  <span id="v0" class="servo-value">330</span>
+                </div>
+                <div class="servo-range">
+                  <input id="s0" type="range" min="150" max="600" value="330" oninput="setServoLabel(0, this.value)" />
+                </div>
+                <div class="servo-meta">
+                  <span>Trục đế</span>
+                  <span>150 - 600</span>
+                </div>
+                <div class="actions" style="margin-top: 14px;">
+                  <button data-auth onclick="sendServo(0)">Gửi servo 0</button>
+                </div>
+              </div>
+
+              <div class="servo-card">
+                <div class="servo-head">
+                  <span class="servo-name">Servo 1</span>
+                  <span id="v1" class="servo-value">150</span>
+                </div>
+                <div class="servo-range">
+                  <input id="s1" type="range" min="150" max="600" value="150" oninput="setServoLabel(1, this.value)" />
+                </div>
+                <div class="servo-meta">
+                  <span>Cánh tay dưới</span>
+                  <span>150 - 600</span>
+                </div>
+                <div class="actions" style="margin-top: 14px;">
+                  <button data-auth onclick="sendServo(1)">Gửi servo 1</button>
+                </div>
+              </div>
+
+              <div class="servo-card">
+                <div class="servo-head">
+                  <span class="servo-name">Servo 2</span>
+                  <span id="v2" class="servo-value">300</span>
+                </div>
+                <div class="servo-range">
+                  <input id="s2" type="range" min="150" max="600" value="300" oninput="setServoLabel(2, this.value)" />
+                </div>
+                <div class="servo-meta">
+                  <span>Cánh tay trên</span>
+                  <span>150 - 600</span>
+                </div>
+                <div class="actions" style="margin-top: 14px;">
+                  <button data-auth onclick="sendServo(2)">Gửi servo 2</button>
+                </div>
+              </div>
+
+              <div class="servo-card">
+                <div class="servo-head">
+                  <span class="servo-name">Servo 3</span>
+                  <span id="v3" class="servo-value">410</span>
+                </div>
+                <div class="servo-range">
+                  <input id="s3" type="range" min="150" max="600" value="410" oninput="setServoLabel(3, this.value)" />
+                </div>
+                <div class="servo-meta">
+                  <span>Trục kẹp</span>
+                  <span>150 - 600</span>
+                </div>
+                <div class="actions" style="margin-top: 14px;">
+                  <button data-auth onclick="sendServo(3)">Gửi servo 3</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="log-head">
+              <div>
+                <h2>Nhật ký thao tác</h2>
+                <p class="note">Theo dõi phản hồi thao tác để phát hiện lỗi xác thực hoặc lỗi gửi lệnh ngay tại chỗ.</p>
+              </div>
+              <div class="actions">
+                <span id="logCount" class="log-count">0 mục</span>
+                <button class="secondary" onclick="clearLog()">Xóa log</button>
+              </div>
+            </div>
+            <div id="log" class="log" style="margin-top: 14px;"></div>
+          </section>
+
+          <section class="panel footer-note">
+            <p class="note">
+              Gợi ý thao tác nhanh: thử đưa tay máy về gốc, sau đó chỉnh PWM và gửi kịch bản hoặc lệnh xe riêng lẻ.
+            </p>
             <div class="actions">
-              <button data-auth onclick="vehicleCmd(0, 0, 1, false)">Nâng lên</button>
-              <button data-auth onclick="vehicleCmd(0, 0, -1, false)">Hạ xuống</button>
-              <button data-auth onclick="vehicleCmd(0, 0, 0, false)">Dừng nâng hạ</button>
+              <span class="kbd">JWT</span>
+              <span class="kbd">ARM</span>
+              <span class="kbd">VEH</span>
             </div>
-            <div class="actions" style="margin-top: 12px">
-              <button data-auth onclick="runPreset('safeStop')">Preset dừng an toàn</button>
-              <button data-auth onclick="runPreset('mpuCheck')">Preset kiểm tra MPU</button>
-              <button data-auth onclick="runPreset('forwardNudge')">Preset nhích tiến</button>
-            </div>
-          </div>
+          </section>
         </div>
-      </section>
-
-      <section class="panel">
-        <h2>Nhật ký lệnh</h2>
-        <div class="actions" style="margin-bottom: 12px">
-          <button class="secondary" onclick="clearLog()">Xóa log</button>
-        </div>
-        <div id="log" class="log"></div>
       </section>
     </div>
 
     <script>
       const STORAGE_KEY = "robot-dashboard-token";
+      const AUTH_MESSAGE_KEY = "robot-dashboard-auth-message";
       const authStatus = document.getElementById("authStatus");
+      const authMeta = document.getElementById("authMeta");
       const tokenBox = document.getElementById("tokenBox");
+      const sessionChip = document.getElementById("sessionChip");
       const logEl = document.getElementById("log");
+      const logCount = document.getElementById("logCount");
+      const logCountMetric = document.getElementById("logCountMetric");
+      const commandBadge = document.getElementById("commandBadge");
+      const speedProfile = document.getElementById("speedProfile");
+      const speedModeCard = document.getElementById("speedModeCard");
+      const speedDialValue = document.getElementById("speedDialValue");
+      const speedDialLabel = document.getElementById("speedDialLabel");
+      const speedDialFill = document.getElementById("speedDialFill");
+      const speedBar = document.getElementById("speedBar");
       const authButtons = [...document.querySelectorAll("[data-auth]")];
 
       let token = localStorage.getItem(STORAGE_KEY) || "";
+      let logEntries = 0;
+
+      function redirectToLogin(message) {
+        if (message) {
+          sessionStorage.setItem(AUTH_MESSAGE_KEY, message);
+        }
+        window.location.replace("/login");
+      }
+
+      if (!token) {
+        redirectToLogin("Vui lòng đăng nhập để truy cập trung tâm điều khiển.");
+      }
+
+      function updateLogCounters() {
+        logCount.textContent = `${logEntries} ${logEntries === 1 ? "mục" : "mục"}`;
+        logCountMetric.textContent = String(logEntries);
+        commandBadge.textContent = `${logEntries} lệnh`;
+      }
 
       function appendLog(line) {
         const stamp = new Date().toLocaleTimeString();
+        logEntries += 1;
+        updateLogCounters();
         logEl.textContent = `[${stamp}] ${line}\n` + logEl.textContent;
       }
 
@@ -427,8 +1358,34 @@
         document.getElementById(`v${ch}`).textContent = value;
       }
 
+      function describeSpeedProfile(value) {
+        const magnitude = Math.abs(Number(value));
+        if (magnitude >= 220) {
+          return "Lực đẩy cao";
+        }
+        if (magnitude >= 140) {
+          return "Hồ sơ hành trình";
+        }
+        if (magnitude >= 60) {
+          return "Di chuyển chính xác";
+        }
+        return "Điều khiển tinh";
+      }
+
       function setVehicleSpeedLabel(value) {
-        document.getElementById("vehSpeedValue").textContent = value;
+        const numeric = Number(value);
+        const magnitude = Math.abs(numeric);
+        const fillPercent = Math.max(0, Math.min(100, (magnitude / 255) * 100));
+
+        document.getElementById("vehSpeedValue").textContent = String(numeric);
+        speedDialValue.textContent = String(numeric);
+        speedDialLabel.textContent = describeSpeedProfile(numeric);
+        speedProfile.textContent = `${numeric} PWM`;
+        speedModeCard.textContent = magnitude >= 140 ? "Hành trình" : magnitude >= 60 ? "Chính xác" : "Tinh chỉnh";
+        if (speedDialFill) {
+          speedDialFill.style.setProperty("--dial-fill", `${fillPercent}%`);
+        }
+        speedBar.style.width = `${fillPercent}%`;
       }
 
       function currentVehicleSpeed() {
@@ -438,7 +1395,10 @@
       function updateAuthUi() {
         const authenticated = Boolean(token);
         authStatus.className = `status-pill ${authenticated ? "ok" : "warn"}`;
-        authStatus.textContent = authenticated ? "Đã đăng nhập điều khiển" : "Chưa đăng nhập";
+        authStatus.textContent = authenticated ? "Đã mở khóa" : "Chưa đăng nhập";
+        authMeta.textContent = authenticated ? "Lệnh điều khiển đã sẵn sàng." : "Khóa điều khiển đang tắt.";
+        sessionChip.className = `status-chip ${authenticated ? "ok" : "warn"}`;
+        sessionChip.textContent = authenticated ? "Trực tuyến" : "Ngoại tuyến";
         tokenBox.textContent = authenticated ? token : "Chưa có token";
         authButtons.forEach((button) => {
           button.disabled = !authenticated;
@@ -447,6 +1407,7 @@
 
       function authHeaders() {
         if (!token) {
+          redirectToLogin("Phiên đăng nhập không còn hợp lệ. Vui lòng đăng nhập lại.");
           throw new Error("Chưa có token đăng nhập");
         }
         return {
@@ -455,36 +1416,22 @@
         };
       }
 
-      async function login() {
-        const username = document.getElementById("username").value.trim();
-        const password = document.getElementById("password").value;
-        try {
-          const response = await fetch("/auth/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password }),
-          });
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-          }
-          const data = await response.json();
-          token = data.access_token || "";
-          localStorage.setItem(STORAGE_KEY, token);
-          updateAuthUi();
-          appendLog(`Đăng nhập thành công cho user ${username}`);
-        } catch (error) {
-          token = "";
-          localStorage.removeItem(STORAGE_KEY);
-          updateAuthUi();
-          appendLog("Đăng nhập thất bại: " + error.message);
+      async function ensureResponseOk(response, authMessage) {
+        if (response.ok) {
+          return;
         }
+        if (response.status === 401) {
+          localStorage.removeItem(STORAGE_KEY);
+          token = "";
+          redirectToLogin(authMessage || "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+        }
+        throw new Error(`HTTP ${response.status}`);
       }
 
       function logout() {
         token = "";
         localStorage.removeItem(STORAGE_KEY);
-        updateAuthUi();
-        appendLog("Đã xóa token điều khiển");
+        redirectToLogin("Phiên đã kết thúc. Vui lòng đăng nhập lại để mở trung tâm điều khiển.");
       }
 
       async function armCmd(cmd) {
@@ -493,12 +1440,10 @@
             method: "POST",
             headers: { Authorization: `bearer ${token}` },
           });
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-          }
-          appendLog(`Đã gửi lệnh arm: ${cmd}`);
+          await ensureResponseOk(response, "Phiên tay máy không còn hợp lệ. Vui lòng đăng nhập lại.");
+          appendLog(`Đã gửi lệnh tay máy: ${cmd}`);
         } catch (error) {
-          appendLog("Lỗi gửi arm: " + error.message);
+          appendLog("Lỗi gửi lệnh tay máy: " + error.message);
         }
       }
 
@@ -510,9 +1455,7 @@
             headers: authHeaders(),
             body: JSON.stringify({ ch: Number(channel), pwm }),
           });
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-          }
+          await ensureResponseOk(response, "Phiên servo không còn hợp lệ. Vui lòng đăng nhập lại.");
           appendLog(`Đã gửi servo ${channel} = ${pwm}`);
         } catch (error) {
           appendLog("Lỗi gửi servo: " + error.message);
@@ -531,12 +1474,10 @@
               stop: Boolean(stop),
             }),
           });
-          if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-          }
-          appendLog(`Đã gửi vehicle speed=${speed} dir=${direction} lift=${lift} stop=${stop}`);
+          await ensureResponseOk(response, "Phiên xe không còn hợp lệ. Vui lòng đăng nhập lại.");
+          appendLog(`Đã gửi lệnh xe: tốc độ=${speed}, hướng=${direction}, nâng_hạ=${lift}, dừng=${stop}`);
         } catch (error) {
-          appendLog("Lỗi gửi vehicle: " + error.message);
+          appendLog("Lỗi gửi lệnh xe: " + error.message);
         }
       }
 
@@ -573,9 +1514,13 @@
       }
 
       function clearLog() {
+        logEntries = 0;
+        updateLogCounters();
         logEl.textContent = "";
       }
 
+      updateLogCounters();
+      setVehicleSpeedLabel(document.getElementById("vehSpeed").value);
       updateAuthUi();
     </script>
   </body>
