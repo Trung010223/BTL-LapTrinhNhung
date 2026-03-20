@@ -2,6 +2,10 @@ from fastapi_mqtt import FastMQTT, MQTTConfig
 from pathlib import Path
 import os
 
+from env_config import load_env_file
+
+load_env_file()
+
 # ============= MQTT Configuration (Buổi 2-3) =============
 # TLS configuration cho MQTT Broker
 CERT_DIR = Path(__file__).resolve().parent / "mqtt_certs"
@@ -14,8 +18,8 @@ if USE_TLS:
     mqtt_config = MQTTConfig(
         host=os.getenv("MQTT_HOST", "127.0.0.1"),
         port=int(os.getenv("MQTT_PORT", 8883)),
-        username=os.getenv("MQTT_USER", "backend"),
-        password=os.getenv("MQTT_PASS", "backend123"),
+        username=os.getenv("MQTT_USER"),
+        password=os.getenv("MQTT_PASS"),
         keepalive=60,
         will_message_topic="backend/status",
         will_message_payload="OFFLINE",
@@ -35,14 +39,14 @@ else:
     mqtt_config = MQTTConfig(
         host=os.getenv("MQTT_HOST", "127.0.0.1"),
         port=int(os.getenv("MQTT_PORT", 1884)),
-        username=os.getenv("MQTT_USER", "backend"),
-        password=os.getenv("MQTT_PASS", "backend123"),
+        username=os.getenv("MQTT_USER"),
+        password=os.getenv("MQTT_PASS"),
         keepalive=60,
         will_message_topic="backend/status",
         will_message_payload="OFFLINE",
         will_delay_interval=10,
         protocol="MQTTv311",
     )
-    print("✓ MQTT configured with username/password (port 1884)")
+    print("✓ MQTT configured from environment (port 1884)")
 
 fast_mqtt = FastMQTT(config=mqtt_config)

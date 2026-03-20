@@ -236,7 +236,7 @@ async def send_vehicle_cmd(req: VehicleCommandRequest, db: Session = Depends(get
 
 
 @vehicle_router.delete("/history")
-async def clear_vehicle_history(db: Session = Depends(get_db)):
+async def clear_vehicle_history(db: Session = Depends(get_db), user: dict = Depends(get_current_user)):
     items = db.exec(select(VehicleState)).all()
     for vehicle in items:
         db.delete(vehicle)

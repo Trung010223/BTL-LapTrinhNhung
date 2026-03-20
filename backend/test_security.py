@@ -12,8 +12,17 @@ from security import (
     MessageSecurity,
     InputValidator,
     RateLimiter,
+    VALID_USERS,
     verify_user,
 )
+
+
+def get_test_user() -> tuple[str, str]:
+    if not VALID_USERS:
+        raise AssertionError("No API users configured. Set API_ADMIN_PASSWORD in backend/.env or environment")
+
+    username = next(iter(VALID_USERS))
+    return username, VALID_USERS[username]
 
 
 def test_aes_encryption():
@@ -42,14 +51,15 @@ def test_jwt_token():
     print("="*60)
     
     # Create token
-    token = JWTAuth.create_token(user_id="user123", username="admin", expires_hours=24)
+    username, _ = get_test_user()
+    token = JWTAuth.create_token(user_id="user123", username=username, expires_hours=24)
     print(f"Generated Token: {token[:50]}...")
     
     # Verify token
     payload = JWTAuth.verify_token(token)
     print(f"Token Payload: {payload}")
     assert payload is not None, "JWT token verification failed!"
-    assert payload["username"] == "admin", "Username mismatch in token!"
+    assert payload["username"] == username, "Username mismatch in token!"
     
     # Test invalid token
     invalid_payload = JWTAuth.verify_token("invalid.token.here")
@@ -141,13 +151,15 @@ def test_user_authentication():
     print("TEST 6: User Authentication (Buổi 2)")
     print("="*60)
     
+    username, password = get_test_user()
+
     # Valid credentials
-    assert verify_user("admin", "admin123"), "Valid user should authenticate"
-    print("✓ admin:admin123 - AUTHENTICATED")
+    assert verify_user(username, password), "Valid user should authenticate"
+    print(f"✓ {username}:<configured> - AUTHENTICATED")
     
     # Invalid password
-    assert not verify_user("admin", "wrongpass"), "Wrong password should fail"
-    print("✓ admin:wrongpass - REJECTED")
+    assert not verify_user(username, "wrongpass"), "Wrong password should fail"
+    print(f"✓ {username}:wrongpass - REJECTED")
     
     # Invalid user
     assert not verify_user("nonexistent", "pass"), "Nonexistent user should fail"
@@ -162,12 +174,14 @@ def test_integration_flow():
     print("TEST 7: Full Integration Flow (Buổi 2-5)")
     print("="*60)
     
+    username, password = get_test_user()
+
     # 1. Authenticate user
-    assert verify_user("admin", "admin123"), "Authentication failed"
+    assert verify_user(username, password), "Authentication failed"
     print("✓ Step 1: User authenticated")
     
     # 2. Generate JWT
-    token = JWTAuth.create_token(user_id="admin", username="admin")
+    token = JWTAuth.create_token(user_id=username, username=username)
     assert token is not None, "Token generation failed"
     print(f"✓ Step 2: JWT token generated: {token[:30]}...")
     

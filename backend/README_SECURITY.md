@@ -396,9 +396,15 @@ MQTT_USER=backend
 MQTT_PASS=backend123
 
 # Security Keys
-HMAC_KEY=your-32-byte-secret-key-production
-AES_KEY=your-32-byte-aes-key-production
+HMAC_KEY=replace-with-long-random-secret
+AES_KEY=replace-with-long-random-secret
 JWT_SECRET=your-jwt-secret-production
+
+# API Credentials
+API_ADMIN_USERNAME=admin
+API_ADMIN_PASSWORD=change-this-admin-password
+API_USER_USERNAME=user
+API_USER_PASSWORD=change-this-user-password
 
 # Rate Limiting
 API_RATE_LIMIT=100

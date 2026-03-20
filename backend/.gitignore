@@ -3,3 +3,4 @@ __pycache__/
 robot_arm.db
 .venv/
 venv/
+.env

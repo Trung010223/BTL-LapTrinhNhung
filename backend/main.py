@@ -2,7 +2,7 @@ import json
 import inspect
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, WebSocket
+from fastapi import Depends, FastAPI, HTTPException, WebSocket
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.websockets import WebSocketDisconnect
@@ -66,7 +66,7 @@ def control_dashboard():
     return FileResponse(BASE_DIR / "static" / "control.html")
 
 
-from router import router, vehicle_router  # noqa: E402
+from router import get_current_user, router, vehicle_router  # noqa: E402
 
 app.include_router(router)
 app.include_router(vehicle_router)
@@ -225,13 +225,8 @@ async def websocket_endpoint(websocket: WebSocket):
             data = await websocket.receive_text()
             try:
                 msg = json.loads(data)
-                if msg.get("type") == "command":
-                    cmd = msg.get("cmd", "")
-                    payload = json.dumps({"cmd": cmd})
-                    await mqtt_publish("servo/command", payload)
-                    with Session(engine) as session:
-                        session.add(CommandLog(source="ws", command=cmd, payload=payload))
-                        session.commit()
+                if msg.get("type") == "ping":
+                    await websocket.send_text(json.dumps({"type": "pong"}))
             except Exception:
                 pass
     except WebSocketDisconnect:
@@ -239,19 +234,19 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 @app.get("/states", tags=["Arm Database"])
-def get_all_states(limit: int = 100):
+def get_all_states(limit: int = 100, user: dict = Depends(get_current_user)):
     with Session(engine) as session:
         return session.exec(select(ArmState).order_by(ArmState.id.desc()).limit(limit)).all()
 
 
 @app.get("/states/latest", tags=["Arm Database"])
-def get_latest_state():
+def get_latest_state(user: dict = Depends(get_current_user)):
     with Session(engine) as session:
         return session.exec(select(ArmState).order_by(ArmState.id.desc())).first()
 
 
 @app.delete("/states", tags=["Arm Database"])
-def clear_all_states():
+def clear_all_states(user: dict = Depends(get_current_user)):
     with Session(engine) as session:
         items = session.exec(select(ArmState)).all()
         for state in items:
@@ -261,13 +256,13 @@ def clear_all_states():
 
 
 @app.get("/vehicle/states", tags=["Vehicle Database"])
-def get_vehicle_states(limit: int = 100):
+def get_vehicle_states(limit: int = 100, user: dict = Depends(get_current_user)):
     with Session(engine) as session:
         return session.exec(select(VehicleState).order_by(VehicleState.id.desc()).limit(limit)).all()
 
 
 @app.get("/vehicle/latest", tags=["Vehicle Database"])
-def get_vehicle_latest():
+def get_vehicle_latest(user: dict = Depends(get_current_user)):
     with Session(engine) as session:
         row = session.exec(select(VehicleState).order_by(VehicleState.id.desc())).first()
         if not row:
@@ -276,7 +271,7 @@ def get_vehicle_latest():
 
 
 @app.delete("/vehicle/states", tags=["Vehicle Database"])
-def clear_vehicle_states():
+def clear_vehicle_states(user: dict = Depends(get_current_user)):
     with Session(engine) as session:
         items = session.exec(select(VehicleState)).all()
         for vehicle in items:
@@ -286,19 +281,19 @@ def clear_vehicle_states():
 
 
 @app.get("/vacuum/logs", tags=["Logs"])
-def get_vacuum_logs(limit: int = 50):
+def get_vacuum_logs(limit: int = 50, user: dict = Depends(get_current_user)):
     with Session(engine) as session:
         return session.exec(select(VacuumLog).order_by(VacuumLog.id.desc()).limit(limit)).all()
 
 
 @app.get("/commands/logs", tags=["Logs"])
-def get_command_logs(limit: int = 50):
+def get_command_logs(limit: int = 50, user: dict = Depends(get_current_user)):
     with Session(engine) as session:
         return session.exec(select(CommandLog).order_by(CommandLog.id.desc()).limit(limit)).all()
 
 
 @app.post("/command/{cmd}", tags=["Control"])
-async def send_command(cmd: str):
+async def send_command(cmd: str, user: dict = Depends(get_current_user)):
     payload = json.dumps({"cmd": cmd})
     try:
         if not bool(getattr(fast_mqtt.client, "is_connected", False)):
@@ -313,7 +308,12 @@ async def send_command(cmd: str):
 
 
 @app.post("/vehicle/command", tags=["Control"])
-async def send_vehicle_command(speed: int = 0, direction: int = 0, stop: bool = False):
+async def send_vehicle_command(
+    speed: int = 0,
+    direction: int = 0,
+    stop: bool = False,
+    user: dict = Depends(get_current_user),
+):
     payload = json.dumps({"cmd": "vehicle", "speed": speed, "direction": direction, "stop": stop})
     try:
         if not bool(getattr(fast_mqtt.client, "is_connected", False)):

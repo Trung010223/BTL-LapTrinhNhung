@@ -11,26 +11,56 @@ import json
 import hmac
 import hashlib
 import base64
+import os
 import secrets
 import time
 from datetime import datetime, timedelta
-from typing import Optional, Tuple
+from typing import Optional
 
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.backends import default_backend
 from jwt import encode, decode, ExpiredSignatureError, InvalidTokenError
 from pydantic import BaseModel
 
+from env_config import load_env_file
+
+load_env_file()
+
+
+def _get_secret_seed(name: str) -> str:
+    value = os.getenv(name)
+    if value:
+        return value
+
+    generated = secrets.token_urlsafe(48)
+    print(f"[SECURITY] {name} not set, using ephemeral in-memory secret")
+    return generated
+
+
+def _derive_32_byte_key(name: str) -> bytes:
+    return hashlib.sha256(_get_secret_seed(name).encode("utf-8")).digest()
+
+
+def _load_valid_users() -> dict[str, str]:
+    users: dict[str, str] = {}
+
+    admin_password = os.getenv("API_ADMIN_PASSWORD")
+    if admin_password:
+        users[os.getenv("API_ADMIN_USERNAME", "admin")] = admin_password
+
+    user_password = os.getenv("API_USER_PASSWORD")
+    if user_password:
+        users[os.getenv("API_USER_USERNAME", "user")] = user_password
+
+    return users
+
 # ============= KEYS & CONSTANTS =============
-# Buổi 1-5: Hard-coded keys (should be in environment in production)
-HMAC_KEY = b"a" * 32  # 32 bytes for HMAC-SHA256
-AES_KEY = b"b" * 32  # 32 bytes for AES-256
-JWT_SECRET = "your-jwt-secret-key-change-me-in-production"
+# Buổi 1-5: Load secrets from environment or local .env
+HMAC_KEY = _derive_32_byte_key("HMAC_KEY")
+AES_KEY = _derive_32_byte_key("AES_KEY")
+JWT_SECRET = _get_secret_seed("JWT_SECRET")
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_HOURS = 24
-
-# IV for AES (should rotate per message in production)
-AES_IV = b"c" * 16  # 16 bytes for AES-CBC
 
 
 # ============= AES ENCRYPTION (Buổi 3-4) =============
@@ -38,15 +68,17 @@ class AESCrypto:
     """AES-CBC encryption/decryption với HMAC-SHA256 (Buổi 3-5)"""
     
     @staticmethod
-    def encrypt(plaintext: str, key: bytes = AES_KEY, iv: bytes = AES_IV) -> str:
+    def encrypt(plaintext: str, key: bytes = AES_KEY) -> str:
         """
         Mã hóa AES-256-CBC + HMAC-SHA256
-        Returns: {nonce}:{timestamp}:{ciphertext}:{hmac_tag}
+        Returns: {nonce}:{timestamp}:{iv}:{ciphertext}:{hmac_tag}
         """
         try:
             # Generate nonce for replay attack prevention (Buổi 3)
             nonce = secrets.token_hex(8)
             timestamp = str(int(time.time()))
+            iv = secrets.token_bytes(16)
+            iv_b64 = base64.b64encode(iv).decode('utf-8')
             
             # Encrypt với AES-256-CBC
             cipher = Cipher(
@@ -65,28 +97,28 @@ class AESCrypto:
             ciphertext_b64 = base64.b64encode(ciphertext).decode('utf-8')
             
             # Create HMAC-SHA256 tag (Buổi 5)
-            hmac_data = f"{nonce}:{timestamp}:{ciphertext_b64}".encode('utf-8')
+            hmac_data = f"{nonce}:{timestamp}:{iv_b64}:{ciphertext_b64}".encode('utf-8')
             hmac_tag = hmac.new(HMAC_KEY, hmac_data, hashlib.sha256).hexdigest()
             
-            return f"{nonce}:{timestamp}:{ciphertext_b64}:{hmac_tag}"
+            return f"{nonce}:{timestamp}:{iv_b64}:{ciphertext_b64}:{hmac_tag}"
         except Exception as e:
             raise ValueError(f"Encryption failed: {str(e)}")
     
     @staticmethod
-    def decrypt(ciphertext_full: str, key: bytes = AES_KEY, iv: bytes = AES_IV) -> str:
+    def decrypt(ciphertext_full: str, key: bytes = AES_KEY) -> str:
         """
         Giải mã AES-256-CBC + Verify HMAC-SHA256
-        Format: {nonce}:{timestamp}:{ciphertext}:{hmac_tag}
+        Format: {nonce}:{timestamp}:{iv}:{ciphertext}:{hmac_tag}
         """
         try:
             parts = ciphertext_full.split(':')
-            if len(parts) != 4:
+            if len(parts) != 5:
                 raise ValueError("Invalid ciphertext format")
             
-            nonce, timestamp, ciphertext_b64, hmac_tag = parts
+            nonce, timestamp, iv_b64, ciphertext_b64, hmac_tag = parts
             
             # Verify HMAC tag
-            hmac_data = f"{nonce}:{timestamp}:{ciphertext_b64}".encode('utf-8')
+            hmac_data = f"{nonce}:{timestamp}:{iv_b64}:{ciphertext_b64}".encode('utf-8')
             expected_tag = hmac.new(HMAC_KEY, hmac_data, hashlib.sha256).hexdigest()
             if not hmac.compare_digest(hmac_tag, expected_tag):
                 raise ValueError("HMAC verification failed - possible tampering detected")
@@ -98,6 +130,7 @@ class AESCrypto:
                 raise ValueError("Message timestamp too old - possible replay attack")
             
             # Decrypt
+            iv = base64.b64decode(iv_b64)
             cipher = Cipher(
                 algorithms.AES(key),
                 modes.CBC(iv),
@@ -158,15 +191,15 @@ class TokenResponse(BaseModel):
 
 # ============= USER AUTHENTICATION STORAGE (Buổi 2) =============
 # In production, use proper database with hashed passwords
-VALID_USERS = {
-    "admin": "admin123",  # Change this in production!
-    "user": "user123",
-}
+VALID_USERS = _load_valid_users()
 
 
 def verify_user(username: str, password: str) -> bool:
     """Xác thực username/password"""
-    return VALID_USERS.get(username) == password
+    expected_password = VALID_USERS.get(username)
+    if not expected_password:
+        return False
+    return hmac.compare_digest(expected_password, password)
 
 
 # ============= RATE LIMITING (Buổi 5) =============
