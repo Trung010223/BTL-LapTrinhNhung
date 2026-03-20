@@ -151,7 +151,12 @@ void OnDataRecv(const uint8_t *mac, const uint8_t *data, int len) {
 }
 
 void sendCmdToVehicle(int speed, int direction, int lift, bool stop) {
-  CmdPacket cmd = {speed, direction, lift, stop};
+  CmdPacket cmd = {
+    static_cast<int16_t>(speed),
+    static_cast<int16_t>(direction),
+    static_cast<int16_t>(lift),
+    stop,
+  };
   esp_err_t sendRc = esp_now_send(nodeMAC, (uint8_t *)&cmd, sizeof(cmd));
 
   JsonDocument ack;
