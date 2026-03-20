@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Robot Control Panel</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+
+      :root {
+        --bg-0: #081016;
+        --bg-1: #0c1b24;
+        --panel: #0f202d;
+        --line: #25445f;
+        --line-soft: #1b3348;
+        --text: #e6f2ff;
+        --muted: #9ab6cd;
+        --accent: #2bd4b3;
+        --accent-2: #6fe0ff;
+        --ok: #39d98a;
+        --warn: #ffbf69;
+        --danger: #ff7f7f;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        padding: 24px;
+        font-family: "Space Grotesk", "Segoe UI", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 10% 15%, rgba(43, 212, 179, 0.17), transparent 30%),
+          radial-gradient(circle at 85% 10%, rgba(111, 224, 255, 0.12), transparent 32%),
+          linear-gradient(180deg, var(--bg-0), var(--bg-1) 60%, #0a1722);
+      }
+
+      .wrap {
+        max-width: 1180px;
+        margin: 0 auto;
+        display: grid;
+        gap: 18px;
+      }
+
+      .hero,
+      .panel {
+        background: linear-gradient(180deg, rgba(15, 32, 45, 0.95), rgba(13, 28, 39, 0.92));
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 18px;
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      }
+
+      .hero {
+        display: grid;
+        gap: 14px;
+      }
+
+      .hero-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 30px;
+      }
+
+      h2 {
+        font-size: 20px;
+        margin-bottom: 12px;
+      }
+
+      .hero p,
+      .note,
+      .muted {
+        color: var(--muted);
+      }
+
+      .top-nav {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .nav-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        padding: 0 14px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        color: var(--text);
+        text-decoration: none;
+        background: rgba(12, 27, 36, 0.65);
+      }
+
+      .nav-link.active {
+        border-color: var(--accent);
+        background: rgba(43, 212, 179, 0.16);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 14px;
+      }
+
+      .auth-grid {
+        display: grid;
+        grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+        gap: 14px;
+      }
+
+      .input-grid {
+        display: grid;
+        gap: 12px;
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      input[type="text"],
+      input[type="password"],
+      input[type="range"] {
+        width: 100%;
+      }
+
+      input[type="text"],
+      input[type="password"] {
+        min-height: 44px;
+        padding: 0 14px;
+        border-radius: 12px;
+        border: 1px solid var(--line-soft);
+        background: #091621;
+        color: var(--text);
+        font: inherit;
+      }
+
+      input[type="range"] {
+        accent-color: var(--accent);
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 12px;
+        border-radius: 999px;
+        font-weight: 600;
+      }
+
+      .ok {
+        background: rgba(57, 217, 138, 0.16);
+        color: var(--ok);
+      }
+
+      .warn {
+        background: rgba(255, 191, 105, 0.16);
+        color: var(--warn);
+      }
+
+      .danger {
+        background: rgba(255, 127, 127, 0.16);
+        color: var(--danger);
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        min-height: 42px;
+        padding: 0 14px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, #173047, #13283b);
+        color: var(--text);
+        cursor: pointer;
+        font: inherit;
+      }
+
+      button:hover {
+        border-color: var(--accent);
+      }
+
+      button.secondary {
+        background: rgba(10, 22, 33, 0.85);
+      }
+
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 14px;
+      }
+
+      .control-card {
+        border: 1px solid var(--line-soft);
+        border-radius: 14px;
+        padding: 14px;
+        background: rgba(8, 20, 32, 0.78);
+      }
+
+      .slider-row {
+        display: grid;
+        grid-template-columns: 80px 1fr 60px;
+        gap: 10px;
+        align-items: center;
+        margin-top: 10px;
+      }
+
+      .slider-value {
+        text-align: right;
+        color: var(--accent-2);
+        font-weight: 600;
+      }
+
+      .log {
+        min-height: 220px;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid var(--line-soft);
+        background: #081420;
+        white-space: pre-wrap;
+        font-family: "JetBrains Mono", Consolas, monospace;
+        font-size: 13px;
+      }
+
+      .token-box {
+        min-height: 120px;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid var(--line-soft);
+        background: #081420;
+        overflow-wrap: anywhere;
+        font-family: "JetBrains Mono", Consolas, monospace;
+        font-size: 12px;
+      }
+
+      @media (max-width: 860px) {
+        body {
+          padding: 14px;
+        }
+
+        .auth-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .slider-row {
+          grid-template-columns: 70px 1fr 52px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <section class="hero">
+        <div class="hero-head">
+          <div>
+            <h1>Robot Control Panel</h1>
+            <p>
+              Giao diện điều khiển riêng cho tay máy và xe. Trang này dùng JWT
+              để gửi lệnh tới API bảo vệ.
+            </p>
+          </div>
+          <nav class="top-nav">
+            <a class="nav-link" href="/dashboard">Giao diện thông tin</a>
+            <a class="nav-link active" href="/control">Giao diện điều khiển</a>
+          </nav>
+        </div>
+        <div id="authStatus" class="status-pill warn">Chưa đăng nhập</div>
+      </section>
+
+      <section class="panel auth-grid">
+        <div>
+          <h2>Đăng nhập điều khiển</h2>
+          <div class="input-grid" style="margin-top: 12px">
+            <label>
+              Tài khoản
+              <input id="username" type="text" value="admin" />
+            </label>
+            <label>
+              Mật khẩu
+              <input id="password" type="password" value="admin123" />
+            </label>
+            <div class="actions">
+              <button onclick="login()">Lấy token</button>
+              <button class="secondary" onclick="logout()">Xóa token</button>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h2>JWT hiện tại</h2>
+          <div id="tokenBox" class="token-box">Chưa có token</div>
+          <p class="note" style="margin-top: 10px">
+            Token được lưu trong trình duyệt để dùng lại khi reload trang.
+          </p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Điều khiển cánh tay</h2>
+        <div class="card-grid">
+          <div class="control-card">
+            <h3>Lệnh nhanh</h3>
+            <div class="actions" style="margin-top: 12px">
+              <button data-auth onclick="armCmd('home')">Home</button>
+              <button data-auth onclick="armCmd('auto')">Auto</button>
+              <button data-auth onclick="armCmd('stop')">Stop</button>
+              <button data-auth onclick="armCmd('cut')">Cut / Vacuum</button>
+            </div>
+          </div>
+          <div class="control-card">
+            <h3>Servo chi tiết</h3>
+            <div class="slider-row">
+              <span>Servo 0</span>
+              <input id="s0" type="range" min="150" max="600" value="330" oninput="setServoLabel(0, this.value)" />
+              <span id="v0" class="slider-value">330</span>
+            </div>
+            <div class="slider-row">
+              <span>Servo 1</span>
+              <input id="s1" type="range" min="150" max="600" value="150" oninput="setServoLabel(1, this.value)" />
+              <span id="v1" class="slider-value">150</span>
+            </div>
+            <div class="slider-row">
+              <span>Servo 2</span>
+              <input id="s2" type="range" min="150" max="600" value="300" oninput="setServoLabel(2, this.value)" />
+              <span id="v2" class="slider-value">300</span>
+            </div>
+            <div class="slider-row">
+              <span>Servo 3</span>
+              <input id="s3" type="range" min="150" max="600" value="410" oninput="setServoLabel(3, this.value)" />
+              <span id="v3" class="slider-value">410</span>
+            </div>
+            <div class="actions" style="margin-top: 12px">
+              <button data-auth onclick="sendServo(0)">Gửi Servo 0</button>
+              <button data-auth onclick="sendServo(1)">Gửi Servo 1</button>
+              <button data-auth onclick="sendServo(2)">Gửi Servo 2</button>
+              <button data-auth onclick="sendServo(3)">Gửi Servo 3</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Điều khiển xe</h2>
+        <div class="card-grid">
+          <div class="control-card">
+            <h3>Tốc độ và hướng</h3>
+            <div class="slider-row">
+              <span>Tốc độ</span>
+              <input id="vehSpeed" type="range" min="-255" max="255" value="120" oninput="setVehicleSpeedLabel(this.value)" />
+              <span id="vehSpeedValue" class="slider-value">120</span>
+            </div>
+            <div class="actions" style="margin-top: 12px">
+              <button data-auth onclick="vehicleCmd(currentVehicleSpeed(), 0, 0, false)">Tiến</button>
+              <button data-auth onclick="vehicleCmd(-currentVehicleSpeed(), 0, 0, false)">Lùi</button>
+              <button data-auth onclick="vehicleCmd(currentVehicleSpeed(), -1, 0, false)">Rẽ trái</button>
+              <button data-auth onclick="vehicleCmd(currentVehicleSpeed(), 1, 0, false)">Rẽ phải</button>
+              <button data-auth onclick="vehicleCmd(0, 0, 0, true)">Dừng xe</button>
+            </div>
+          </div>
+          <div class="control-card">
+            <h3>Nâng hạ và preset</h3>
+            <div class="actions">
+              <button data-auth onclick="vehicleCmd(0, 0, 1, false)">Nâng lên</button>
+              <button data-auth onclick="vehicleCmd(0, 0, -1, false)">Hạ xuống</button>
+              <button data-auth onclick="vehicleCmd(0, 0, 0, false)">Dừng nâng hạ</button>
+            </div>
+            <div class="actions" style="margin-top: 12px">
+              <button data-auth onclick="runPreset('safeStop')">Preset dừng an toàn</button>
+              <button data-auth onclick="runPreset('mpuCheck')">Preset kiểm tra MPU</button>
+              <button data-auth onclick="runPreset('forwardNudge')">Preset nhích tiến</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Nhật ký lệnh</h2>
+        <div class="actions" style="margin-bottom: 12px">
+          <button class="secondary" onclick="clearLog()">Xóa log</button>
+        </div>
+        <div id="log" class="log"></div>
+      </section>
+    </div>
+
+    <script>
+      const STORAGE_KEY = "robot-dashboard-token";
+      const authStatus = document.getElementById("authStatus");
+      const tokenBox = document.getElementById("tokenBox");
+      const logEl = document.getElementById("log");
+      const authButtons = [...document.querySelectorAll("[data-auth]")];
+
+      let token = localStorage.getItem(STORAGE_KEY) || "";
+
+      function appendLog(line) {
+        const stamp = new Date().toLocaleTimeString();
+        logEl.textContent = `[${stamp}] ${line}\n` + logEl.textContent;
+      }
+
+      function setServoLabel(ch, value) {
+        document.getElementById(`v${ch}`).textContent = value;
+      }
+
+      function setVehicleSpeedLabel(value) {
+        document.getElementById("vehSpeedValue").textContent = value;
+      }
+
+      function currentVehicleSpeed() {
+        return Number(document.getElementById("vehSpeed").value || 0);
+      }
+
+      function updateAuthUi() {
+        const authenticated = Boolean(token);
+        authStatus.className = `status-pill ${authenticated ? "ok" : "warn"}`;
+        authStatus.textContent = authenticated ? "Đã đăng nhập điều khiển" : "Chưa đăng nhập";
+        tokenBox.textContent = authenticated ? token : "Chưa có token";
+        authButtons.forEach((button) => {
+          button.disabled = !authenticated;
+        });
+      }
+
+      function authHeaders() {
+        if (!token) {
+          throw new Error("Chưa có token đăng nhập");
+        }
+        return {
+          "Content-Type": "application/json",
+          Authorization: `bearer ${token}`,
+        };
+      }
+
+      async function login() {
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value;
+        try {
+          const response = await fetch("/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password }),
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+          const data = await response.json();
+          token = data.access_token || "";
+          localStorage.setItem(STORAGE_KEY, token);
+          updateAuthUi();
+          appendLog(`Đăng nhập thành công cho user ${username}`);
+        } catch (error) {
+          token = "";
+          localStorage.removeItem(STORAGE_KEY);
+          updateAuthUi();
+          appendLog("Đăng nhập thất bại: " + error.message);
+        }
+      }
+
+      function logout() {
+        token = "";
+        localStorage.removeItem(STORAGE_KEY);
+        updateAuthUi();
+        appendLog("Đã xóa token điều khiển");
+      }
+
+      async function armCmd(cmd) {
+        try {
+          const response = await fetch(`/arm/control/cmd?cmd=${encodeURIComponent(cmd)}`, {
+            method: "POST",
+            headers: { Authorization: `bearer ${token}` },
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+          appendLog(`Đã gửi lệnh arm: ${cmd}`);
+        } catch (error) {
+          appendLog("Lỗi gửi arm: " + error.message);
+        }
+      }
+
+      async function sendServo(channel) {
+        try {
+          const pwm = Number(document.getElementById(`s${channel}`).value);
+          const response = await fetch("/arm/control/servo", {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify({ ch: Number(channel), pwm }),
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+          appendLog(`Đã gửi servo ${channel} = ${pwm}`);
+        } catch (error) {
+          appendLog("Lỗi gửi servo: " + error.message);
+        }
+      }
+
+      async function vehicleCmd(speed, direction, lift, stop) {
+        try {
+          const response = await fetch("/v/command", {
+            method: "POST",
+            headers: authHeaders(),
+            body: JSON.stringify({
+              speed: Number(speed),
+              direction: Number(direction),
+              lift: Number(lift),
+              stop: Boolean(stop),
+            }),
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+          appendLog(`Đã gửi vehicle speed=${speed} dir=${direction} lift=${lift} stop=${stop}`);
+        } catch (error) {
+          appendLog("Lỗi gửi vehicle: " + error.message);
+        }
+      }
+
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      async function runPreset(name) {
+        try {
+          if (name === "safeStop") {
+            await vehicleCmd(0, 0, 0, true);
+            await armCmd("stop");
+            appendLog("Preset dừng an toàn hoàn tất");
+            return;
+          }
+          if (name === "mpuCheck") {
+            await vehicleCmd(60, 1, 0, false);
+            await sleep(900);
+            await vehicleCmd(60, -1, 0, false);
+            await sleep(900);
+            await vehicleCmd(0, 0, 0, true);
+            appendLog("Preset kiểm tra MPU hoàn tất");
+            return;
+          }
+          if (name === "forwardNudge") {
+            await vehicleCmd(90, 0, 0, false);
+            await sleep(1000);
+            await vehicleCmd(0, 0, 0, true);
+            appendLog("Preset nhích tiến hoàn tất");
+          }
+        } catch (error) {
+          appendLog("Lỗi preset: " + error.message);
+        }
+      }
+
+      function clearLog() {
+        logEl.textContent = "";
+      }
+
+      updateAuthUi();
+    </script>
+  </body>
+</html>

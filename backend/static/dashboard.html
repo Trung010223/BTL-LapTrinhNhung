@@ -1,0 +1,843 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Robot Monitoring Dashboard</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+
+      :root {
+        --bg-0: #081016;
+        --bg-1: #0c1b24;
+        --panel: #0f202d;
+        --panel-soft: #132738;
+        --line: #25445f;
+        --line-soft: #1b3348;
+        --text: #e6f2ff;
+        --muted: #9ab6cd;
+        --accent: #2bd4b3;
+        --accent-2: #6fe0ff;
+        --ok: #39d98a;
+        --warn: #ffbf69;
+        --danger: #ff7f7f;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Space Grotesk", "Segoe UI", sans-serif;
+        background:
+          radial-gradient(
+            circle at 15% 15%,
+            rgba(43, 212, 179, 0.16),
+            transparent 34%
+          ),
+          radial-gradient(
+            circle at 85% 10%,
+            rgba(111, 224, 255, 0.14),
+            transparent 30%
+          ),
+          linear-gradient(180deg, var(--bg-0), var(--bg-1) 60%, #0a1722);
+        color: var(--text);
+        padding: 24px;
+        min-height: 100vh;
+      }
+      .wrap {
+        max-width: 1180px;
+        margin: 0 auto;
+        display: grid;
+        gap: 18px;
+      }
+      .hero,
+      .panel {
+        background: linear-gradient(
+          180deg,
+          rgba(15, 32, 45, 0.95),
+          rgba(13, 28, 39, 0.92)
+        );
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 18px;
+        box-shadow:
+          0 18px 40px rgba(0, 0, 0, 0.22),
+          inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        animation: fadeInUp 0.45s ease both;
+      }
+      .hero h1 {
+        margin: 0 0 8px;
+        font-size: 30px;
+        letter-spacing: 0.2px;
+      }
+      .hero-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .hero p {
+        margin: 0;
+        color: var(--muted);
+        max-width: 760px;
+      }
+      .top-nav {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .nav-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 40px;
+        padding: 0 14px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        color: var(--text);
+        background: rgba(12, 27, 36, 0.65);
+        text-decoration: none;
+      }
+      .nav-link.active {
+        border-color: var(--accent);
+        background: rgba(43, 212, 179, 0.16);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 14px;
+      }
+      .panel h2 {
+        margin-top: 0;
+        font-size: 19px;
+        letter-spacing: 0.2px;
+      }
+      .kv {
+        display: grid;
+        grid-template-columns: 120px 1fr;
+        gap: 8px;
+      }
+      .kv div:nth-child(odd) {
+        color: var(--muted);
+      }
+      #armState,
+      #vehicleState {
+        background: rgba(10, 22, 33, 0.7);
+        border: 1px solid var(--line-soft);
+        border-radius: 12px;
+        padding: 12px;
+      }
+      .status {
+        display: inline-block;
+        padding: 5px 12px;
+        border-radius: 999px;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+      }
+      .ok {
+        background: rgba(57, 217, 138, 0.16);
+        color: var(--ok);
+      }
+      .warn {
+        background: rgba(255, 191, 105, 0.16);
+        color: var(--warn);
+      }
+      .log {
+        font-family: "JetBrains Mono", Consolas, monospace;
+        font-size: 13px;
+        background: #081420;
+        border: 1px solid var(--line-soft);
+        border-radius: 12px;
+        padding: 12px;
+        height: 220px;
+        max-height: 220px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+      }
+      .actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .actions.tight {
+        gap: 8px;
+      }
+      .actions.tight button {
+        padding: 8px 12px;
+      }
+      .health-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+        gap: 12px;
+      }
+      .health-item {
+        border: 1px solid var(--line-soft);
+        border-radius: 12px;
+        background: rgba(7, 18, 28, 0.66);
+        padding: 10px 12px;
+      }
+      .health-label {
+        font-size: 12px;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+      .health-value {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+      }
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+      }
+      .dot.ok {
+        background: var(--ok);
+        box-shadow: 0 0 12px rgba(57, 217, 138, 0.55);
+      }
+      .dot.warn {
+        background: var(--warn);
+        box-shadow: 0 0 10px rgba(255, 191, 105, 0.45);
+      }
+      .dot.bad {
+        background: var(--danger);
+        box-shadow: 0 0 10px rgba(255, 127, 127, 0.45);
+      }
+      .health-note {
+        margin-top: 2px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .mpu-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+      }
+      .mpu-card {
+        border: 1px solid #2a4966;
+        background: linear-gradient(180deg, #102131, #0b1826);
+        border-radius: 12px;
+        padding: 12px;
+      }
+      .mpu-label {
+        color: var(--muted);
+        font-size: 12px;
+        margin-bottom: 6px;
+      }
+      .mpu-value {
+        font-size: 28px;
+        color: var(--accent);
+        font-weight: 700;
+        line-height: 1;
+      }
+      .mpu-sub {
+        margin-top: 8px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .mpu-history {
+        margin-top: 14px;
+        background: #08111a;
+        border: 1px solid #162739;
+        border-radius: 12px;
+        padding: 10px;
+        max-height: 150px;
+        overflow: auto;
+        font-family: Consolas, monospace;
+        font-size: 12px;
+      }
+      .mpu-chart-wrap {
+        margin-top: 14px;
+        background: #081420;
+        border: 1px solid var(--line-soft);
+        border-radius: 12px;
+        padding: 10px;
+      }
+      .mpu-chart-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+      }
+      .legend {
+        display: flex;
+        gap: 14px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .legend i {
+        width: 12px;
+        height: 2px;
+        display: inline-block;
+        margin-right: 6px;
+        vertical-align: middle;
+      }
+      .legend .p {
+        background: #6fe0ff;
+      }
+      .legend .r {
+        background: #2bd4b3;
+      }
+      canvas#mpuChart {
+        width: 100%;
+        height: 170px;
+        display: block;
+        border-radius: 8px;
+      }
+      .balanced-tag {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 999px;
+        font-weight: 600;
+      }
+      .balanced-yes {
+        color: var(--ok);
+        background: rgba(41, 209, 125, 0.14);
+      }
+      .balanced-no {
+        color: var(--danger);
+        background: rgba(255, 125, 125, 0.14);
+      }
+      .arm-controls {
+        display: grid;
+        gap: 12px;
+      }
+      .arm-row {
+        display: grid;
+        grid-template-columns: 80px 1fr 58px;
+        gap: 10px;
+        align-items: center;
+      }
+      .arm-row label {
+        color: var(--muted);
+      }
+      .arm-row input[type="range"] {
+        width: 100%;
+        accent-color: var(--accent);
+      }
+      .arm-value {
+        text-align: right;
+        color: var(--accent-2);
+        font-weight: 600;
+      }
+      button {
+        border: 1px solid var(--line);
+        background: linear-gradient(180deg, #173047, #13283b);
+        color: var(--text);
+        padding: 10px 14px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition:
+          transform 0.15s ease,
+          border-color 0.15s ease,
+          filter 0.15s ease;
+      }
+      button:hover {
+        border-color: var(--accent);
+        transform: translateY(-1px);
+        filter: brightness(1.06);
+      }
+      a {
+        color: var(--accent-2);
+      }
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @media (max-width: 768px) {
+        body {
+          padding: 14px;
+        }
+        .hero h1 {
+          font-size: 24px;
+        }
+        .panel,
+        .hero {
+          padding: 14px;
+          border-radius: 14px;
+        }
+        .arm-row {
+          grid-template-columns: 70px 1fr 52px;
+          gap: 8px;
+        }
+        .mpu-value {
+          font-size: 22px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <section class="hero">
+        <div class="hero-top">
+          <div>
+            <h1>Robot Monitoring Dashboard</h1>
+            <p>
+              Giao diện chỉ hiển thị thông tin realtime cho robot arm, xe và MPU.
+              Dữ liệu đồng bộ qua FastAPI, MQTT và WebSocket.
+            </p>
+          </div>
+          <nav class="top-nav">
+            <a class="nav-link active" href="/dashboard">Giao diện thông tin</a>
+            <a class="nav-link" href="/control">Giao diện điều khiển</a>
+          </nav>
+        </div>
+      </section>
+
+      <section class="grid">
+        <article class="panel">
+          <h2>Arm mới nhất</h2>
+          <div id="armState" class="kv">Đang tải...</div>
+        </article>
+        <article class="panel">
+          <h2>Vehicle mới nhất</h2>
+          <div id="vehicleState" class="kv">Đang tải...</div>
+        </article>
+        <article class="panel">
+          <h2>Trạng thái WebSocket</h2>
+          <div id="wsState"><span class="status warn">Đang kết nối</span></div>
+          <div style="margin-top: 12px">
+            API docs: <a href="/docs" target="_blank">/docs</a>
+          </div>
+        </article>
+      </section>
+
+      <section class="panel">
+        <h2>Health Trạng thái hệ thống</h2>
+        <div class="health-grid">
+          <div class="health-item">
+            <div class="health-label">API Backend</div>
+            <div id="healthApi" class="health-value">
+              <span class="dot warn"></span><span>Đang kiểm tra</span>
+            </div>
+            <div class="health-note" id="healthApiNote">-</div>
+          </div>
+          <div class="health-item">
+            <div class="health-label">WebSocket</div>
+            <div id="healthWs" class="health-value">
+              <span class="dot warn"></span><span>Đang kết nối</span>
+            </div>
+            <div class="health-note" id="healthWsNote">-</div>
+          </div>
+          <div class="health-item">
+            <div class="health-label">Telemetry MPU</div>
+            <div id="healthMpu" class="health-value">
+              <span class="dot warn"></span><span>Chưa có dữ liệu</span>
+            </div>
+            <div class="health-note" id="healthMpuNote">-</div>
+          </div>
+          <div class="health-item">
+            <div class="health-label">Telemetry Arm</div>
+            <div id="healthArm" class="health-value">
+              <span class="dot warn"></span><span>Chưa có dữ liệu</span>
+            </div>
+            <div class="health-note" id="healthArmNote">-</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Thông tin MPU (Realtime)</h2>
+        <div class="mpu-grid">
+          <div class="mpu-card">
+            <div class="mpu-label">Pitch</div>
+            <div id="mpuPitch" class="mpu-value">-</div>
+            <div class="mpu-sub">Độ nghiêng trước/sau</div>
+          </div>
+          <div class="mpu-card">
+            <div class="mpu-label">Roll</div>
+            <div id="mpuRoll" class="mpu-value">-</div>
+            <div class="mpu-sub">Độ nghiêng trái/phải</div>
+          </div>
+          <div class="mpu-card">
+            <div class="mpu-label">Cân bằng</div>
+            <div id="mpuBalanced" class="mpu-value" style="font-size: 18px">
+              -
+            </div>
+            <div class="mpu-sub">Từ telemetry xe</div>
+          </div>
+          <div class="mpu-card">
+            <div class="mpu-label">Cập nhật cuối</div>
+            <div id="mpuUpdated" class="mpu-value" style="font-size: 18px">
+              -
+            </div>
+            <div class="mpu-sub">Thời gian local</div>
+          </div>
+        </div>
+        <div class="mpu-chart-wrap">
+          <div class="mpu-chart-head">
+            <div class="mpu-label">Đồ thị 60 mẫu gần nhất</div>
+            <div class="legend">
+              <span><i class="p"></i>Pitch</span>
+              <span><i class="r"></i>Roll</span>
+            </div>
+          </div>
+          <canvas id="mpuChart"></canvas>
+        </div>
+        <div id="mpuHistory" class="mpu-history">Chưa có dữ liệu MPU...</div>
+      </section>
+
+      <section class="panel">
+        <h2>Sự kiện realtime</h2>
+        <div class="actions">
+          <button onclick="loadSnapshot()">Tải lại dữ liệu</button>
+          <button onclick="clearLog()">Xóa log</button>
+        </div>
+        <div id="log" class="log" style="margin-top: 12px"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Điều hướng</h2>
+        <p class="muted" style="margin-bottom: 12px">
+          Trang này chỉ hiển thị thông tin và log realtime. Muốn gửi lệnh điều khiển,
+          chuyển sang giao diện điều khiển riêng.
+        </p>
+        <div class="actions">
+          <a class="nav-link" href="/control">Mở giao diện điều khiển</a>
+          <a class="nav-link" href="/docs" target="_blank">Mở API docs</a>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const logEl = document.getElementById("log");
+      const wsState = document.getElementById("wsState");
+      const mpuHistory = [];
+      const MAX_CHART_POINTS = 60;
+      const mpuSeries = { pitch: [], roll: [] };
+      const chartCanvas = document.getElementById("mpuChart");
+      const chartCtx = chartCanvas.getContext("2d");
+
+      let wsConnected = false;
+      let lastApiOkAt = 0;
+      let lastWsMsgAt = 0;
+      let lastVehicleAt = 0;
+      let lastArmAt = 0;
+
+      function ago(ts) {
+        if (!ts) {
+          return "-";
+        }
+        const sec = Math.max(0, Math.floor((Date.now() - ts) / 1000));
+        return `${sec}s trước`;
+      }
+
+      function setHealth(id, noteId, level, text, note) {
+        const root = document.getElementById(id);
+        const noteEl = document.getElementById(noteId);
+        root.innerHTML = `<span class="dot ${level}"></span><span>${text}</span>`;
+        noteEl.textContent = note;
+      }
+
+      function evaluateFreshness(ageMs, goodMs, warnMs) {
+        if (ageMs <= goodMs) {
+          return "ok";
+        }
+        if (ageMs <= warnMs) {
+          return "warn";
+        }
+        return "bad";
+      }
+
+      function updateHealthPanel() {
+        const now = Date.now();
+
+        const apiAge = lastApiOkAt
+          ? now - lastApiOkAt
+          : Number.POSITIVE_INFINITY;
+        const apiLevel = evaluateFreshness(apiAge, 5000, 15000);
+        setHealth(
+          "healthApi",
+          "healthApiNote",
+          apiLevel,
+          apiLevel === "ok"
+            ? "Ổn định"
+            : apiLevel === "warn"
+              ? "Chậm phản hồi"
+              : "Mất phản hồi",
+          `Lần OK gần nhất: ${ago(lastApiOkAt)}`,
+        );
+
+        const wsAge = lastWsMsgAt
+          ? now - lastWsMsgAt
+          : Number.POSITIVE_INFINITY;
+        const wsLevel = !wsConnected
+          ? "bad"
+          : evaluateFreshness(wsAge, 5000, 15000);
+        setHealth(
+          "healthWs",
+          "healthWsNote",
+          wsLevel,
+          !wsConnected
+            ? "Mất kết nối"
+            : wsLevel === "ok"
+              ? "Đang chạy"
+              : "Có độ trễ",
+          `Gói WS gần nhất: ${ago(lastWsMsgAt)}`,
+        );
+
+        const mpuAge = lastVehicleAt
+          ? now - lastVehicleAt
+          : Number.POSITIVE_INFINITY;
+        const mpuLevel = evaluateFreshness(mpuAge, 3000, 12000);
+        setHealth(
+          "healthMpu",
+          "healthMpuNote",
+          mpuLevel,
+          mpuLevel === "ok"
+            ? "Realtime tốt"
+            : mpuLevel === "warn"
+              ? "Đang chậm"
+              : "Mất telemetry",
+          `Mẫu MPU gần nhất: ${ago(lastVehicleAt)}`,
+        );
+
+        const armAge = lastArmAt ? now - lastArmAt : Number.POSITIVE_INFINITY;
+        const armLevel = evaluateFreshness(armAge, 5000, 15000);
+        setHealth(
+          "healthArm",
+          "healthArmNote",
+          armLevel,
+          armLevel === "ok"
+            ? "Realtime tốt"
+            : armLevel === "warn"
+              ? "Đang chậm"
+              : "Mất telemetry",
+          `Mẫu arm gần nhất: ${ago(lastArmAt)}`,
+        );
+      }
+
+      function resizeChartCanvas() {
+        const ratio = Math.max(1, window.devicePixelRatio || 1);
+        const width = chartCanvas.clientWidth;
+        const height = chartCanvas.clientHeight;
+        chartCanvas.width = Math.floor(width * ratio);
+        chartCanvas.height = Math.floor(height * ratio);
+        chartCtx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      }
+
+      function drawMpuChart() {
+        const w = chartCanvas.clientWidth;
+        const h = chartCanvas.clientHeight;
+        chartCtx.clearRect(0, 0, w, h);
+
+        chartCtx.strokeStyle = "rgba(111, 224, 255, 0.12)";
+        chartCtx.lineWidth = 1;
+        for (let i = 0; i <= 4; i++) {
+          const y = (h / 4) * i;
+          chartCtx.beginPath();
+          chartCtx.moveTo(0, y);
+          chartCtx.lineTo(w, y);
+          chartCtx.stroke();
+        }
+
+        const allValues = mpuSeries.pitch.concat(mpuSeries.roll);
+        const maxAbs = Math.max(5, ...allValues.map((v) => Math.abs(v || 0)));
+        const scaleY = (h * 0.42) / maxAbs;
+        const midY = h / 2;
+
+        function drawSeries(arr, color) {
+          if (arr.length < 2) {
+            return;
+          }
+          chartCtx.strokeStyle = color;
+          chartCtx.lineWidth = 2;
+          chartCtx.beginPath();
+          arr.forEach((val, idx) => {
+            const x = (idx / (MAX_CHART_POINTS - 1)) * w;
+            const y = midY - val * scaleY;
+            if (idx === 0) {
+              chartCtx.moveTo(x, y);
+            } else {
+              chartCtx.lineTo(x, y);
+            }
+          });
+          chartCtx.stroke();
+        }
+
+        drawSeries(mpuSeries.pitch, "#6fe0ff");
+        drawSeries(mpuSeries.roll, "#2bd4b3");
+
+        chartCtx.strokeStyle = "rgba(255,255,255,0.22)";
+        chartCtx.lineWidth = 1;
+        chartCtx.beginPath();
+        chartCtx.moveTo(0, midY);
+        chartCtx.lineTo(w, midY);
+        chartCtx.stroke();
+      }
+
+      function pushMpuSample(pitch, roll) {
+        const p = Number(pitch) || 0;
+        const r = Number(roll) || 0;
+        mpuSeries.pitch.push(p);
+        mpuSeries.roll.push(r);
+        if (mpuSeries.pitch.length > MAX_CHART_POINTS) {
+          mpuSeries.pitch.shift();
+          mpuSeries.roll.shift();
+        }
+        drawMpuChart();
+      }
+
+      function formatNum(v) {
+        if (v === null || v === undefined || Number.isNaN(Number(v))) {
+          return "-";
+        }
+        return Number(v).toFixed(2);
+      }
+
+      function updateMpuPanel(vehicle) {
+        if (
+          !vehicle ||
+          (vehicle.pitch === undefined && vehicle.roll === undefined)
+        ) {
+          return;
+        }
+
+        const pitchText = `${formatNum(vehicle.pitch)}°`;
+        const rollText = `${formatNum(vehicle.roll)}°`;
+
+        document.getElementById("mpuPitch").textContent = pitchText;
+        document.getElementById("mpuRoll").textContent = rollText;
+
+        const balancedEl = document.getElementById("mpuBalanced");
+        const isBalanced = Boolean(vehicle.is_balanced ?? vehicle.isBalanced);
+        balancedEl.innerHTML = isBalanced
+          ? '<span class="balanced-tag balanced-yes">CAN BANG</span>'
+          : '<span class="balanced-tag balanced-no">LECH</span>';
+
+        const stamp = new Date().toLocaleTimeString();
+        document.getElementById("mpuUpdated").textContent = stamp;
+        lastVehicleAt = Date.now();
+        pushMpuSample(vehicle.pitch, vehicle.roll);
+
+        mpuHistory.unshift(
+          `[${stamp}] pitch=${pitchText}, roll=${rollText}, balanced=${isBalanced}`,
+        );
+        if (mpuHistory.length > 10) {
+          mpuHistory.length = 10;
+        }
+        document.getElementById("mpuHistory").textContent =
+          mpuHistory.join("\n");
+      }
+
+      function renderKV(target, obj, map) {
+        const el = document.getElementById(target);
+        const html = map
+          .map(
+            ([label, key]) =>
+              `<div>${label}</div><div>${obj?.[key] ?? "-"}</div>`,
+          )
+          .join("");
+        el.innerHTML = html;
+      }
+
+      function appendLog(line) {
+        const stamp = new Date().toLocaleTimeString();
+        logEl.textContent = `[${stamp}] ${line}\n` + logEl.textContent;
+      }
+
+      function clearLog() {
+        logEl.textContent = "";
+      }
+
+      async function loadSnapshot() {
+        try {
+          const [armRes, vehicleRes] = await Promise.all([
+            fetch("/states/latest"),
+            fetch("/vehicle/latest"),
+          ]);
+
+          if (armRes.ok || vehicleRes.ok) {
+            lastApiOkAt = Date.now();
+          }
+
+          const arm = armRes.ok ? await armRes.json() : {};
+          const vehicle = vehicleRes.ok ? await vehicleRes.json() : {};
+
+          if (arm && arm.id) {
+            lastArmAt = Date.now();
+          }
+
+          renderKV("armState", arm, [
+            ["Vacuum", "vacuum"],
+            ["Auto", "auto_mode"],
+            ["S0", "s0_deg"],
+            ["S1", "s1_deg"],
+            ["S2", "s2_deg"],
+            ["S3", "s3_deg"],
+          ]);
+
+          renderKV("vehicleState", vehicle, [
+            ["Pitch", "pitch"],
+            ["Roll", "roll"],
+            ["A", "cur_a"],
+            ["B", "cur_b"],
+            ["C", "cur_c"],
+            ["Balanced", "is_balanced"],
+          ]);
+
+          updateMpuPanel(vehicle);
+        } catch (error) {
+          appendLog("Loi tai snapshot: " + error.message);
+        }
+      }
+
+      function connectWS() {
+        const proto = location.protocol === "https:" ? "wss" : "ws";
+        const socket = new WebSocket(`${proto}://${location.host}/ws`);
+
+        socket.onopen = () => {
+          wsConnected = true;
+          lastWsMsgAt = Date.now();
+          wsState.innerHTML = '<span class="status ok">Đã kết nối</span>';
+          appendLog("WebSocket connected");
+        };
+
+        socket.onmessage = (event) => {
+          lastWsMsgAt = Date.now();
+          appendLog(event.data);
+          try {
+            const data = JSON.parse(event.data);
+            if (data.event === "arm_update") {
+              lastArmAt = Date.now();
+              loadSnapshot();
+            }
+            if (data.event === "vehicle_update") {
+              updateMpuPanel(data);
+              loadSnapshot();
+            }
+          } catch (error) {
+            appendLog("JSON parse error: " + error.message);
+          }
+        };
+
+        socket.onclose = () => {
+          wsConnected = false;
+          wsState.innerHTML =
+            '<span class="status warn">Mất kết nối - đang thử lại</span>';
+          setTimeout(connectWS, 2000);
+        };
+      }
+
+      window.addEventListener("resize", () => {
+        resizeChartCanvas();
+        drawMpuChart();
+      });
+
+      resizeChartCanvas();
+      drawMpuChart();
+      loadSnapshot();
+      connectWS();
+      setInterval(updateHealthPanel, 2000);
+    </script>
+  </body>
+</html>
